@@ -1,8 +1,7 @@
 import os
 
-from data_extraction.Adzuna.utils.api_handler import sanitize_filename
-from utils.config_loader import load_credentials, load_queries
-from utils.api_handler import fetch_jobs, save_to_json, remove_no_results_terms, remove_duplicates
+from data_extraction.utils.adzuna_api_handler import *
+from data_extraction.utils.config_loader import load_credentials, load_queries
 
 # Définir les répertoires et fichiers de sortie
 OUTPUT_DIRECTORY = "output"

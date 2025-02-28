@@ -26,7 +26,7 @@ def fetch_jobs(credentials, criteria):
     pays = "fr"
 
     # Clés spécifiques à extraire
-    keys_to_extract = ["id", "title", "company", "location", "location_area", "description",
+    keys_to_extract = ["id", "title", "company", "location", "location_area",
                        "salary_min", "salary_max", "category", "redirect_url", "longitude", "latitude"]
 
     while True:

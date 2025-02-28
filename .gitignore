@@ -8,4 +8,4 @@ credentials.yaml
 data_extraction/Adzuna/output/*.json
 !data_extraction/Adzuna/output/.gitkeep
 !data_extraction/Adzuna/output/all_jobs.json
-data_extraction/Adzuna/Todo.md
+data_extraction/Todo.md
