@@ -2,7 +2,7 @@ __pycache__
 .DS_Store
 .idea/
 .venv/
-.env/
+.env
 !.gitignore
 credentials.yaml
 data_extraction/Adzuna/output/*.json
