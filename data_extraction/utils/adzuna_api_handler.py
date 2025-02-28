@@ -2,9 +2,9 @@ import requests
 import json
 import os
 import re
+from dotenv import load_dotenv
 
-
-def fetch_jobs(credentials, criteria):
+def fetch_jobs_from_adzuna(criteria):
     """
     Envoie une requête à l'API Adzuna pour récupérer plusieurs pages d'offres d'emploi
     et retourne les résultats avec le nombre total d'annonces disponibles.
@@ -13,28 +13,32 @@ def fetch_jobs(credentials, criteria):
     afin d'avoir uniquement les valeurs dont on a besoin.
     Les valeurs sont définies dans une variable ci-dessous
 
-
-    :param credentials: Récupère les identifiants du fichier credentials.yaml
     :param criteria : permet de définir les critères de recherche
     """
-
-    results = []
-    total_count = 0
+    # Charger les variables d'environnements et récupérer les credentials
+    load_dotenv()
+    api_base_url = os.getenv("ADZUNA_BASE_URL")
+    app_id = os.getenv("ADZUNA_APP_ID")
+    app_key = os.getenv("ADZUNA_APP_KEY")
 
     # Définir la page de départ
     page = 1
     pays = "fr"
+    total_count = 0
 
     # Clés spécifiques à extraire
     keys_to_extract = ["id", "title", "company", "location", "location_area",
                        "salary_min", "salary_max", "category", "redirect_url", "longitude", "latitude"]
 
+    # Stocker la sortie dans une liste
+    results = []
+
     while True:
         print(f"Récupération de la page {page}...\n")
-        url = f"{credentials['api_base_url']}/{pays}/search/{page}"
+        url = f"{api_base_url}/{pays}/search/{page}"
         params = {
-            "app_id": credentials["app_id"],
-            "app_key": credentials["app_key"],
+            "app_id": app_id,
+            "app_key": app_key,
             "title_only": criteria["query"],
             # "what_exclude" : criteria["what_exclude"],
             "results_per_page": criteria["results_per_page"]
@@ -106,7 +110,7 @@ def sanitize_filename(filename) :
 
 
 
-def remove_duplicates(results):
+def remove_adzuna_duplicates(results):
     """
     Supprime les doublons des offres d'emploi dans le fichier consolidé
     en se basant sur l'identifiant unique (ID) de chaque offre.

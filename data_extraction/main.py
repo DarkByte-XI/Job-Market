@@ -1,18 +1,17 @@
 import os
 
 from data_extraction.utils.adzuna_api_handler import *
-from data_extraction.utils.config_loader import load_credentials, load_queries
+from data_extraction.utils.config_loader import load_queries
 
 # Définir les répertoires et fichiers de sortie
-OUTPUT_DIRECTORY = "output"
+OUTPUT_DIRECTORY = "/Users/dani/Git-Repo/Job_Market/data_extraction/Adzuna/output"
 NO_RESULTS_FILENAME = "no_results_queries.json"
 CONSOLIDATED_FILENAME = "all_jobs.json"
 
 
 def main():
-    # Charger les identifiants de l'API et les queries
-    credentials = load_credentials("credentials.yaml")
-    queries = load_queries("../job_keywords.json").get("title", [])
+    # Charger les queries
+    queries = load_queries("../data_extraction/job_keywords.json").get("title", [])
     # exclusions = load_queries("../job_keywords.json").get("what_exclude", [])
 
     print(f"Titres à rechercher : {queries}\n")
@@ -29,7 +28,7 @@ def main():
 
         # Récupérer les résultats pour la requête envoyée selon les critères définis
         # dans le dictionnaire search_criteria
-        jobs, total_count = fetch_jobs(credentials, search_criteria)
+        jobs, total_count = fetch_jobs_from_adzuna(search_criteria)
 
         # Si aucun résultat, ajouter le terme à la liste no_results_queries
         if total_count == 0:
@@ -51,7 +50,7 @@ def main():
 
     # Sauvegarder un fichier combiné pour toutes les requêtes
     if all_results:
-        unique_jobs = remove_duplicates(all_results)
+        unique_jobs = remove_adzuna_duplicates(all_results)
         save_to_json(unique_jobs, filename=CONSOLIDATED_FILENAME, directory=OUTPUT_DIRECTORY)
 
         print(f"Tous les résultats sont sauvegardés dans : {OUTPUT_DIRECTORY}/{CONSOLIDATED_FILENAME}")
