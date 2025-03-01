@@ -1,4 +1,4 @@
-from job_market.adzuna_api import *
+from jobs_api.adzuna_api import *
 from config_loader import *
 
 # Définir les répertoires et fichiers de sortie

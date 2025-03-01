@@ -2,7 +2,7 @@ import requests
 import json
 import os
 import re
-from dotenv import load_dotenv
+from config_loader import get_config
 
 def fetch_jobs_from_adzuna(criteria):
     """
@@ -16,10 +16,7 @@ def fetch_jobs_from_adzuna(criteria):
     :param criteria : permet de définir les critères de recherche
     """
     # Charger les variables d'environnements et récupérer les credentials
-    load_dotenv()
-    api_base_url = os.getenv("ADZUNA_BASE_URL")
-    app_id = os.getenv("ADZUNA_APP_ID")
-    app_key = os.getenv("ADZUNA_APP_KEY")
+    adzuna_config = get_config()
 
     # Définir la page de départ
     page = 1
@@ -35,10 +32,10 @@ def fetch_jobs_from_adzuna(criteria):
 
     while True:
         print(f"Récupération de la page {page}...\n")
-        url = f"{api_base_url}/{pays}/search/{page}"
+        url = f"{adzuna_config["adzuna"]["HOST"]}/{pays}/search/{page}"
         params = {
-            "app_id": app_id,
-            "app_key": app_key,
+            "app_id": adzuna_config["adzuna"]["APP_ID"],
+            "app_key": adzuna_config["adzuna"]["APP_KEY"],
             "title_only": criteria["query"],
             # "what_exclude" : criteria["what_exclude"],
             "results_per_page": criteria["results_per_page"]
