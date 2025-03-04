@@ -1,8 +1,7 @@
 import requests
 import json
-import os
-import re
 from config_loader import get_config
+
 
 def fetch_jobs_from_adzuna(criteria):
     """
@@ -18,6 +17,11 @@ def fetch_jobs_from_adzuna(criteria):
     # Charger les variables d'environnements et récupérer les credentials
     adzuna_config = get_config()
 
+    adzuna_base_url = adzuna_config["adzuna"]["BASE_URL"]
+    adzuna_app_id = adzuna_config["adzuna"]["APP_ID"]
+    adzuna_app_key = adzuna_config["adzuna"]["APP_KEY"]
+
+
     # Définir la page de départ
     page = 1
     pays = "fr"
@@ -32,10 +36,10 @@ def fetch_jobs_from_adzuna(criteria):
 
     while True:
         print(f"Récupération de la page {page}...\n")
-        url = f"{adzuna_config["adzuna"]["HOST"]}/{pays}/search/{page}"
+        url = f"{adzuna_base_url}/{pays}/search/{page}"
         params = {
-            "app_id": adzuna_config["adzuna"]["APP_ID"],
-            "app_key": adzuna_config["adzuna"]["APP_KEY"],
+            "app_id": adzuna_app_id,
+            "app_key": adzuna_app_key,
             "title_only": criteria["query"],
             # "what_exclude" : criteria["what_exclude"],
             "results_per_page": criteria["results_per_page"]
@@ -88,23 +92,21 @@ def fetch_jobs_from_adzuna(criteria):
     return results, total_count
 
 
-
-def sanitize_filename(filename) :
+def load_adzuna_queries(file_path):
     """
-    Nettoie un nom de fichier en supprimant ou remplaçant les caractères invalides afin
-    d'avoir un format lisible et compatible.
-
-    :param filename: Le nom de fichier à nettoyer.
-    :return: Un nom de fichier valide.
+    Charge les requêtes spécifiques depuis un fichier JSON.
+    La fonction retourne les valeurs dans la clé title qui correspond aux requêtes,
+    ainsi que le format adapté aux exclusions pris en charge par l'API (séparateur espace).
     """
+    with open(file_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
 
-    # Nettoie et supprime les caractères invalides
-    filename = re.sub(r'\s*/\s*', '_', filename)
-    filename = re.sub(r'\s+', '_', filename)
-    filename = re.sub(r'[\\:*?"<>|]', '', filename)
-
-    return filename
-
+    # Retourne la liste des jobs titles et les exclusions
+    # dans le format adapté à l'API
+    return {
+        "title": data.get("title", []),
+        "what_exclude" : " ".join(data.get("what_exclude", []))
+    }
 
 
 def remove_adzuna_duplicates(results):
@@ -158,29 +160,3 @@ def remove_no_results_terms(job_titles_path, no_results_queries):
         print(f"Erreur lors de la mise à jour de {job_titles_path} : {e}")
 
 
-
-def save_to_json(data, filename, directory="."):
-    """
-    Sauvegarde les données dans un fichier JSON formaté dans un répertoire donné.
-
-    :param data: Les données à écrire dans le fichier JSON.
-    :param filename: Le nom du fichier de sortie.
-    :param directory: Le répertoire où enregistrer le fichier.
-    """
-    try:
-        # S'assurer que le répertoire existe
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        # Construire le chemin complet du fichier
-        filepath = os.path.join(directory, filename)
-
-        # Écrire les données dans le fichier JSON
-        with open(filepath, mode="w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4, ensure_ascii=False)
-
-        print(f"Les données ont été sauvegardées dans le fichier '{filepath}'.\n")
-        print("-" * 50)
-    except Exception as e:
-        print(f"Erreur lors de la sauvegarde dans le fichier JSON : {e}")
-        print("-" * 50)

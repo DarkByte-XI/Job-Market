@@ -13,14 +13,36 @@ def get_config():
 
     config = {
         "adzuna": {
-            "HOST": os.getenv("ADZUNA_BASE_URL"),
+            "BASE_URL": os.getenv("ADZUNA_BASE_URL"),
             "APP_ID": os.getenv("ADZUNA_APP_ID"),
-            "APP_KEY": os.getenv("ADZUNA_APP_KEY"),
+            "APP_KEY": os.getenv("ADZUNA_APP_KEY")
         },
         "rapid_api": {
             "HOST": os.getenv("RAPID_API_HOST"),
-            "APP_KEY": os.getenv("RAPID_API_KEY"),
+            "BASE_URL": os.getenv("RAPID_BASE_URL"),
+            "APP_KEY": os.getenv("RAPID_API_KEY")
+        },
+        "jsearch": {
+            "HOST": os.getenv("JSEARCH_HOST"),
+            "BASE_URL": os.getenv("JSEARCH_BASE_URL"),
+            "APP_KEY": os.getenv("JSEARCH_KEY")
+        },
+        "linkedin": {
+            "HOST": os.getenv("LINKEDIN_HOST"),
+            "BASE_URL": os.getenv("LINKEDIN_BASE_URL"),
+            "APP_KEY": os.getenv("LINKEDIN_KEY")
+        },
+        "france_travail":{
+            "ID": os.getenv("FRANCE_TRAVAIL_ID"),
+            "KEY": os.getenv("FRANCE_TRAVAIL_KEY"),
+            "SCOPE": os.getenv("FRANCE_TRAVAIL_SCOPES")
         }
+
+        #"upwork": {
+        #    "BASE_URL": os.getenv("UPWORK_BASE_URL"),
+        #    "HOST": os.getenv("UPWORK_HOST"),
+        #    "APP_KEY": os.getenv("UPWORK_KEY")
+        #}
     }
 
     for api, creds in config.items():
@@ -29,21 +51,3 @@ def get_config():
             raise ValueError(f"Pour l'API {api}, les variables manquantes : {', '.join(missing)}")
 
     return config
-
-
-def load_queries(file_path):
-    """
-    Charge les requêtes spécifiques depuis un fichier JSON.
-    La fonction retourne les valeurs dans la clé title qui correspond aux requêtes,
-    ainsi que le format adapté aux exclusions pris en charge par l'API (séparateur espace).
-    """
-    with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    # Retourne la liste des jobs titles et les exclusions
-    # dans le format adapté à l'API
-    return {
-        "title": data.get("title", []),
-        "what_exclude" : " ".join(data.get("what_exclude", []))
-    }
-
