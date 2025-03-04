@@ -1,5 +1,7 @@
 from jobs_api.adzuna_api import *
 from config_loader import *
+from utils import save_to_json, sanitize_filename
+
 
 # Définir les répertoires et fichiers de sortie
 OUTPUT_DIRECTORY = "/Users/dani/Git-Repo/Job_Market/data/Adzuna/output"
@@ -9,7 +11,7 @@ CONSOLIDATED_FILENAME = "all_jobs.json"
 
 def main():
     # Charger les queries
-    queries = load_queries("../../data/job_keywords.json").get("title", [])
+    queries = load_adzuna_queries("../../data/job_keywords.json").get("title", [])
     # exclusions = load_queries("../job_keywords.json").get("what_exclude", [])
 
     print(f"Titres à rechercher : {queries}\n")

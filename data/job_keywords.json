@@ -29,5 +29,8 @@
         "Software",
         "Terraform",
         "Git"
+    ],
+    "what_exclude": [
+
     ]
 }
