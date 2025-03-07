@@ -14,36 +14,55 @@ def fetch_job_from_jsearch(params):
     # Définir l'URL complète de l'API
     url = f"{jsearch_base_url}"
 
-    # Définir les fichiers et répertoire de sortie
-    OUTPUT_DIR = "/Users/dani/Git-Repo/Job_Market/data/jsearch/output"
-    OUTPUT_FILE = "jsearch_jobs.json"
-
     headers = {
         'Content-Type': 'application/json',
         'x-rapidapi-host': f"{jsearch_host}",
         'x-rapidapi-key': f"{jsearch_key}",
     }
 
-    all_jobs = []
-
-
     # Préparer les paramètres pour la requête
     jsearch_query_params = {
         "query": params.get("query", ""),
         "country": params.get("country", ""),
         "page": params.get("page", ""),
-        "num_pages": params.get("num_pages", "")
+        "num_pages": params.get("num_pages", ""),
+        "date_posted": params.get("date_posted", "")
     }
     # Exécuter la requête
     response = requests.get(url = url, headers = headers, params = jsearch_query_params)
     if response.status_code == 200:
         data = response.json()
+        # On récupère les offres directement dans "data".
         jobs = data.get("data", [])
-        all_jobs.extend(jobs)
-        print(f"Nombre d'offres récupérées : {len(all_jobs)}")
+        print(f"Nombre d'offres récupérées pour la requête '{params.get('query', '')}': {len(jobs)}")
+        return jobs
     else:
         print(f"Erreur: {response.status_code} - {response.text}")
-    # Sauvegarder les résultats si récupérés
+        return []
+
+
+if __name__ == "__main__":
+    OUTPUT_DIR = "/Users/dani/Git-Repo/Job_Market/data/jsearch/output"
+    OUTPUT_FILE = "jsearch_jobs.json"
+    all_jobs = []
+    queries = ["Data Engineer", "Data Analyst", "Big Data"]
+
+    # Pour chaque requête, on récupère les offres et on les ajoute à la liste globale
+    for query in queries:
+        print(f"Récupération d'offres pour : {query}")
+        params = {
+            "query": f"{query} in France",
+            "page": "10",
+            "num_pages": "10",
+            "country": "fr",
+            "date_posted": "all"
+        }
+        jobs = fetch_job_from_jsearch(params)
+        all_jobs.extend(jobs)
+
+    print(f"Nombre total d'offres combinées: {len(all_jobs)}")
+
+    # Sauvegarder les résultats combinés
     try:
         if all_jobs:
             save_to_json(all_jobs, filename = OUTPUT_FILE, directory = OUTPUT_DIR)
@@ -52,13 +71,3 @@ def fetch_job_from_jsearch(params):
             print("Aucune offre n'a été récupérée.")
     except Exception as e:
         print(f"Erreur lors de la sauvegarde dans le fichier JSON : {e}")
-
-
-if __name__ == "__main__":
-    fetch_job_from_jsearch({"query":"Data Engineer in France",
-                            "page":"1",
-                            "num_pages":"20",
-                            "country":"fr",
-                            "date_posted":"all"})
-
-
