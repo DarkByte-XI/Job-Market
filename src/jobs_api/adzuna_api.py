@@ -41,7 +41,7 @@ def fetch_jobs_from_adzuna(criteria):
         params = {
             "app_id": adzuna_app_id,
             "app_key": adzuna_app_key,
-            "title_only": criteria["query"],
+            "what_phrase": criteria["query"],
             # "what_exclude" : criteria["what_exclude"],
             "results_per_page": criteria["results_per_page"]
         }
@@ -197,12 +197,8 @@ def main():
         print(f"  -> Nombre total d'annonces : {total_count}")
         print(f"  -> Nombre d'annonces récupérées : {len(jobs)}\n")
 
-        # Sauvegarder les résultats et créer un fichier par requête sinon ignorer
+        # Mettre à jour le fichier combiné pour regrouper tous les résultats
         if jobs:
-            filename = sanitize_filename(f"jobs_{query.lower()}.json")
-            save_to_json({"total_count": total_count, "jobs": jobs}, filename=filename, directory=OUTPUT_DIRECTORY)
-
-            # Mettre à jour le fichier combiné pour regrouper tous les résultats
             all_results["total_count"] = all_results.get("total_count", 0) + total_count
             all_results.setdefault("jobs", []).extend(jobs)
 
