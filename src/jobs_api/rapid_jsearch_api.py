@@ -42,7 +42,7 @@ def fetch_job_from_jsearch(params):
 
 
 if __name__ == "__main__":
-    OUTPUT_DIR = "/Users/dani/Git-Repo/Job_Market/data/jsearch/output"
+    OUTPUT_DIR = "/data/raw_data/jsearch/output"
     OUTPUT_FILE = "jsearch_jobs.json"
     all_jobs = []
     queries = ["Data Engineer", "Data Analyst", "Big Data"]

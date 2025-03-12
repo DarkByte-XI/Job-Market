@@ -6,7 +6,6 @@ __pycache__
 !.gitignore
 credentials.yaml
 data_extraction/Adzuna/output/*.json
-!data/Adzuna/output/.gitkeep
-!data/Adzuna/output/all_jobs.json
- data/Adzuna/output/no_results_queries.json
+!data/raw_data/Adzuna/output/.gitkeep
+!data/raw_data/Adzuna/output/all_jobs.json
 Todo.md

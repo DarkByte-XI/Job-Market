@@ -88,7 +88,7 @@ def main():
     print("Token obtenu :", token)
 
     # Chemin du fichier des appellations
-    appellations_file = "/Users/dani/Git-Repo/Job_Market/data/data_appellations.json"
+    appellations_file = "/data/ressources/data_appellations.json"
     appellations = load_appellations(appellations_file)
 
     all_offres = []

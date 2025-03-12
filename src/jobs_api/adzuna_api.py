@@ -1,7 +1,7 @@
 import requests
 import json
 from config_loader import get_config
-from utils import sanitize_filename, save_to_json
+from utils import save_to_json
 
 
 def fetch_jobs_from_adzuna(criteria):
@@ -169,7 +169,7 @@ CONSOLIDATED_FILENAME = "all_jobs.json"
 
 def main():
     # Charger les queries
-    queries = load_adzuna_queries("../../data/job_keywords.json").get("title", [])
+    queries = load_adzuna_queries("../../data/ressources/job_keywords.json").get("title", [])
     # exclusions = load_queries("../job_keywords.json").get("what_exclude", [])
 
     print(f"Titres à rechercher : {queries}\n")
