@@ -4,8 +4,8 @@ __pycache__
 .venv/
 .env
 !.gitignore
-credentials.yaml
+!data/raw_data/.gitkeep
 data/raw_data/Adzuna/output/*.json
-!data/raw_data/Adzuna/output/.gitkeep
-!data/raw_data/Adzuna/output/all_jobs.json
+data/raw_data/france_travail/output/*.json
+data/raw_data/jsearch/output/*.json
 Todo.md
