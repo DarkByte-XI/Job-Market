@@ -5,6 +5,6 @@ __pycache__
 .env
 !.gitignore
 data/raw_data/*
-src/tests
+tests/
 !data/raw_data/.gitkeep
 Todo.md
