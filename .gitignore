@@ -4,8 +4,7 @@ __pycache__
 .venv/
 .env
 !.gitignore
+data/raw_data/*
+src/tests
 !data/raw_data/.gitkeep
-data/raw_data/Adzuna/output/*.json
-data/raw_data/france_travail/output/*.json
-data/raw_data/jsearch/output/*.json
 Todo.md
