@@ -1,5 +1,6 @@
 import os
 import logging
+from logger import info, error, warning
 from dotenv import load_dotenv
 
 # Configuration des logs
@@ -30,11 +31,11 @@ def get_config():
             "BASE_URL": os.getenv("JSEARCH_BASE_URL"),
             "APP_KEY": os.getenv("JSEARCH_KEY")
         },
-        "linkedin": {
-            "HOST": os.getenv("LINKEDIN_HOST"),
-            "BASE_URL": os.getenv("LINKEDIN_BASE_URL"),
-            "APP_KEY": os.getenv("LINKEDIN_KEY")
-        },
+        #"linkedin": {
+        #    "HOST": os.getenv("LINKEDIN_HOST"),
+        #    "BASE_URL": os.getenv("LINKEDIN_BASE_URL"),
+        #    "APP_KEY": os.getenv("LINKEDIN_KEY")
+        #},
         "france_travail": {
             "ID": os.getenv("FRANCE_TRAVAIL_ID"),
             "KEY": os.getenv("FRANCE_TRAVAIL_KEY"),
@@ -43,11 +44,16 @@ def get_config():
     }
 
     # Vérifier les variables manquantes
+    missing_apis_credentials = []  # Pour afficher un seul log global
+
     for api, creds in config.items():
         missing_keys = [key for key, value in creds.items() if not value]
         if missing_keys:
-            logging.warning(f"API {api}: Variables manquantes - {', '.join(missing_keys)}")
-        else:
-            logging.info(f"API {api}: Toutes les variables sont chargées.")
+            missing_apis_credentials.append(error(f"{api} (manquants: {', '.join(missing_keys)})"))
+
+    if missing_apis_credentials:
+        warning(f"Certaines API ont des variables manquantes : {', '.join(missing_apis_credentials)}")
+    else:
+        info("Toutes les API ont leurs variables correctement chargées.")
 
     return config
