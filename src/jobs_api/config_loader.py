@@ -1,15 +1,18 @@
-import json
 import os
-from dotenv import load_dotenv, find_dotenv
+import logging
+from dotenv import load_dotenv
 
+# Configuration des logs
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def get_config():
     """
-    @return: dictionnaire contenant les configs des différentes API
+    Charge les configurations des différentes APIs à partir des variables d'environnement.
+    :return: Dictionnaire contenant les configs des APIs
     """
 
-    # Charger les variables d'environnement
-    load_dotenv(find_dotenv())
+    # Charger les variables d'environnement depuis le fichier .env
+    load_dotenv()
 
     config = {
         "adzuna": {
@@ -32,22 +35,19 @@ def get_config():
             "BASE_URL": os.getenv("LINKEDIN_BASE_URL"),
             "APP_KEY": os.getenv("LINKEDIN_KEY")
         },
-        "france_travail":{
+        "france_travail": {
             "ID": os.getenv("FRANCE_TRAVAIL_ID"),
             "KEY": os.getenv("FRANCE_TRAVAIL_KEY"),
             "SCOPE": os.getenv("FRANCE_TRAVAIL_SCOPES")
         }
-
-        #"upwork": {
-        #    "BASE_URL": os.getenv("UPWORK_BASE_URL"),
-        #    "HOST": os.getenv("UPWORK_HOST"),
-        #    "APP_KEY": os.getenv("UPWORK_KEY")
-        #}
     }
 
+    # Vérifier les variables manquantes
     for api, creds in config.items():
-        missing = [key for key, value in creds.items() if not value]
-        if missing:
-            raise ValueError(f"Pour l'API {api}, les variables manquantes : {', '.join(missing)}")
+        missing_keys = [key for key, value in creds.items() if not value]
+        if missing_keys:
+            logging.warning(f"API {api}: Variables manquantes - {', '.join(missing_keys)}")
+        else:
+            logging.info(f"API {api}: Toutes les variables sont chargées.")
 
     return config
