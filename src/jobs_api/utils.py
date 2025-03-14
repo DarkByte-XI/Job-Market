@@ -18,8 +18,8 @@ def save_to_json(data, source, filename=None):
     :param source: Nom de la source ("Adzuna", "france_travail", "jsearch").
     :param filename: Nom du fichier (optionnel, sinon timestamp utilisé).
     """
-
-    RAW_DATA_DIR = "data/raw_data"
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+    RAW_DATA_DIR = os.path.join(BASE_DIR, "data/raw_data")
 
     if not data:
         warning(f"Aucune donnée à sauvegarder pour {source}.")

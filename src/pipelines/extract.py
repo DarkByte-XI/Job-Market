@@ -5,13 +5,13 @@ from jobs_api.adzuna_api import fetch_jobs_from_adzuna
 from jobs_api.france_travail_api import get_bearer_token, fetch_jobs_from_france_travail
 from jobs_api.jsearch_api import fetch_jobs_from_jsearch
 
-# Charger le chemin absolu du répertoire du script
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "../../data/ressources")
+# Déterminer le chemin racine du projet (Job_Market)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 
-# Fichiers de mots-clés et appellations
-JOB_KEYWORDS_FILE = os.path.join(DATA_DIR, "job_keywords.json")
-APPELLATIONS_FILE = os.path.join(DATA_DIR, "data_appellations.json")
+# Chemins vers les fichiers de ressources
+RESSOURCES_DIR = os.path.join(BASE_DIR, "ressources")
+JOB_KEYWORDS_FILE = os.path.join(RESSOURCES_DIR, "job_keywords.json")
+APPELLATIONS_FILE = os.path.join(RESSOURCES_DIR, "data_appellations.json")
 
 
 def extract_all_jobs():
