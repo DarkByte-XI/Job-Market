@@ -1,32 +1,53 @@
-import json
-import os
 import re
+import os
+import json
+from config.logger import *
+from datetime import datetime
 
-def save_to_json(data, filename, directory="."):
-    """
-    Sauvegarde les données dans un fichier JSON formaté dans un répertoire donné.
+# Configuration des logs
+logging.basicConfig(level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
-    :param data: Les données à écrire dans le fichier JSON.
-    :param filename: Le nom du fichier de sortie.
-    :param directory: Le répertoire où enregistrer le fichier.
+# Répertoire principal pour les données brutes
+
+
+def save_to_json(data, source, filename=None):
     """
+    Sauvegarde les données brutes dans le répertoire approprié sous `data/raw_data/{source}/output/`.
+
+    :param data: Données à sauvegarder (liste ou dictionnaire).
+    :param source: Nom de la source ("Adzuna", "france_travail", "jsearch").
+    :param filename: Nom du fichier (optionnel, sinon timestamp utilisé).
+    """
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+    RAW_DATA_DIR = os.path.join(BASE_DIR, "data/raw_data")
+
+    if not data:
+        warning(f"Aucune donnée à sauvegarder pour {source}.")
+        return
+
+    # Vérifier que la source est valide
+    source = source.lower()
+    if source not in ["adzuna", "france_travail", "jsearch"]:
+        error(f"Source inconnue : {source}. Sauvegarde annulée.")
+        return
+
+    # Définir le dossier de sortie
+    output_dir = os.path.join(RAW_DATA_DIR, source, "output")
+    os.makedirs(output_dir, exist_ok = True)
+
+    # Générer un nom de fichier si non fourni
+    if not filename:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{source}_jobs_{timestamp}.json"
+
+    output_path = os.path.join(output_dir, filename)
+
     try:
-        # S'assurer que le répertoire existe
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        # Construire le chemin complet du fichier
-        filepath = os.path.join(directory, filename)
-
-        # Écrire les données dans le fichier JSON
-        with open(filepath, mode="w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4, ensure_ascii=False)
-
-        print(f"Les données ont été sauvegardées dans le fichier '{filepath}'.\n")
-        print("-" * 50)
+        with open(output_path, "w", encoding = "utf-8") as file:
+            json.dump(data, file, ensure_ascii = False, indent = 2)
+        info(f"Données sauvegardées dans {output_path}")
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde dans le fichier JSON : {e}")
-        print("-" * 50)
+        error(f"Erreur lors de la sauvegarde de {source} : {e}")
 
 
 def sanitize_filename(filename) :
@@ -44,3 +65,76 @@ def sanitize_filename(filename) :
     filename = re.sub(r'[\\:*?"<>|]', '', filename)
 
     return filename
+
+
+def remove_duplicates(jobs):
+    """
+    Supprime les doublons parmi les offres d'emploi des 3 API.
+    - Utilise 'external_id' comme clé principale.
+    - Si 'external_id' est absent, utilise ('title', 'company', 'location').
+
+    :param jobs: Liste des offres d'emploi issues de plusieurs sources.
+    :return: Liste filtrée sans doublons.
+    """
+    unique_jobs = []
+    seen_ids = set()  # Ensemble des external_id déjà vu
+    seen_combinations = set()  # Ensemble des (title, company, location) déjà vu
+
+    for job in jobs:
+        external_id = job.get("external_id")
+        unique_key = (job.get("title"), job.get("company"))
+
+        # Vérifier si l'external_id existe déjà
+        if external_id and external_id in seen_ids:
+            continue  # Offre dupliquée, on l'ignore
+
+        # Vérifier si l'offre existe déjà sous une autre API sans external_id
+        if not external_id and unique_key in seen_combinations:
+            continue  # Offre dupliquée sans ID unique
+
+        # Ajouter à la liste unique
+        unique_jobs.append(job)
+
+        # Ajouter aux ensembles de suivi
+        if external_id:
+            seen_ids.add(external_id)
+        else:
+            seen_combinations.add(unique_key)
+
+    info(f"Nombre d'offres après suppression des doublons : {len(unique_jobs)}")
+    return unique_jobs
+
+
+
+def remove_no_results_terms(job_titles_path, no_results_queries):
+    """
+    Supprime les termes du fichier job_keywords.json qui n'ont retourné aucun résultat.
+
+    :param job_titles_path: Chemin vers le fichier job_keywords.json.
+    :param no_results_queries: Liste des termes sans résultat.
+    """
+    try:
+        # Charger les données actuelles du fichier job_keywords.json
+        with open(job_titles_path, "r", encoding="utf-8") as file:
+            job_titles = json.load(file)
+
+        # Supprimer les termes sans résultat
+        job_titles["title"] = [term for term in job_titles.get("title", []) if term not in no_results_queries]
+
+        # Écrire les données mises à jour dans le fichier job_keywords.json
+        with open(job_titles_path, "w", encoding="utf-8") as file:
+            json.dump(job_titles, file, indent=4, ensure_ascii=False)
+
+    except Exception as e:
+        error(f"Erreur lors de la mise à jour de {job_titles_path} : {e}")
+
+
+
+def load_json_safely(file_path):
+    """Charge un fichier JSON et gère les erreurs en cas d'échec."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        error(f"Erreur lors de la lecture du fichier {file_path} : {e}")
+        return None  # Retourne `None` au lieu de lever une exception
