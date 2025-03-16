@@ -4,11 +4,6 @@ import json
 from config.logger import *
 from datetime import datetime
 
-# Configuration des logs
-logging.basicConfig(level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
-
-# Répertoire principal pour les données brutes
-
 
 def save_to_json(data, directory, source, filename=None):
     """

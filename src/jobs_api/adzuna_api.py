@@ -2,8 +2,6 @@ import requests
 from config.logger import *
 from config.config_loader import get_config
 
-# Configuration des logs
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Charger les credentials API
 adzuna_config = get_config()
@@ -34,6 +32,7 @@ def fetch_jobs_from_adzuna(criteria):
             "results_per_page": criteria["results_per_page"]
         }
 
+        info(f"Requête envoyée à Adzuna à l'url {url}")
         try:
             response = requests.get(url, params=params)
             response.raise_for_status()
@@ -42,6 +41,9 @@ def fetch_jobs_from_adzuna(criteria):
             # Stocker le nombre total d'annonces
             if page == 1:
                 total_count = data.get("count", 0)
+                if total_count == 0:
+                    warning(f"Aucune offre disponible pour {criteria["query"]}, passage à la requête suivante")
+                    break
                 info(f"Nombre total d'annonces disponibles : {total_count}")
 
             # Récupérer les résultats

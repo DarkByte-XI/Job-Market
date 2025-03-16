@@ -2,10 +2,6 @@ import requests
 from config.logger import *
 from config.config_loader import get_config
 
-
-# Configuration des logs
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
 # Charger les credentials API
 ft_config = get_config()
 IDENTIFIANT_CLIENT = ft_config["france_travail"]["ID"]
@@ -28,6 +24,7 @@ def get_bearer_token():
         "scope": SCOPES_OFFRES,
     }
 
+    info(f"Récupération du bearer token pour France Travail")
     try:
         response = requests.post(TOKEN_URL, headers=headers, params=TOKEN_PARAMS, data=data)
         response.raise_for_status()
@@ -49,6 +46,7 @@ def fetch_jobs_from_france_travail(token, job_code):
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     params = {"appellation": job_code, "paysContinent": "01"}
 
+    info(f"Requête envoyée à France Travail à l'url {OFFRES_URL}")
     try:
         # Premier appel pour récupérer le nombre total d'offres
         response = requests.get(OFFRES_URL, headers=headers, params=params)

@@ -1,0 +1,104 @@
+2025-16-03 06:40:08 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:40:08 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:40:08 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:40:08 - INFO - [92m[1mDébut de l'extraction des offres d'emploi...[0m
+2025-16-03 06:40:08 - INFO - [92m[1mRécupération de la page 1 pour 'Data Engineer'...[0m
+2025-16-03 06:40:08 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/1[0m
+2025-16-03 06:40:08 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:40:09 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/1?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69963
+2025-16-03 06:40:10 - INFO - [92m[1mNombre total d'annonces disponibles : 2125[0m
+2025-16-03 06:40:10 - INFO - [92m[1mRécupération de la page 2 pour 'Data Engineer'...[0m
+2025-16-03 06:40:10 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/2[0m
+2025-16-03 06:40:10 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:40:11 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/2?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69714
+2025-16-03 06:40:11 - INFO - [92m[1mRécupération de la page 3 pour 'Data Engineer'...[0m
+2025-16-03 06:40:11 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/3[0m
+2025-16-03 06:40:11 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:40:13 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/3?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 70876
+2025-16-03 06:40:13 - INFO - [92m[1mRécupération de la page 4 pour 'Data Engineer'...[0m
+2025-16-03 06:40:13 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/4[0m
+2025-16-03 06:40:13 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:42:12 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:42:12 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:42:12 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:42:12 - INFO - [92m[1mDébut de l'extraction des offres d'emploi...[0m
+2025-16-03 06:42:12 - INFO - [92m[1mRécupération de la page 1 pour 'Data Engineer'...[0m
+2025-16-03 06:42:12 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/1[0m
+2025-16-03 06:42:12 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:42:13 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/1?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69756
+2025-16-03 06:42:13 - INFO - [92m[1mNombre total d'annonces disponibles : 2125[0m
+2025-16-03 06:42:13 - INFO - [92m[1mRécupération de la page 2 pour 'Data Engineer'...[0m
+2025-16-03 06:42:13 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/2[0m
+2025-16-03 06:42:13 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:42:33 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:42:33 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:42:33 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:42:33 - INFO - [92m[1mDébut de l'extraction des offres d'emploi...[0m
+2025-16-03 06:42:33 - INFO - [92m[1mRécupération de la page 1 pour 'Data Engineer'...[0m
+2025-16-03 06:42:33 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/1[0m
+2025-16-03 06:42:33 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:42:34 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/1?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69756
+2025-16-03 06:42:35 - INFO - [92m[1mNombre total d'annonces disponibles : 2125[0m
+2025-16-03 06:42:35 - INFO - [92m[1mRécupération de la page 2 pour 'Data Engineer'...[0m
+2025-16-03 06:42:35 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/2[0m
+2025-16-03 06:42:35 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:42:36 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/2?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69507
+2025-16-03 06:42:36 - INFO - [92m[1mRécupération de la page 3 pour 'Data Engineer'...[0m
+2025-16-03 06:42:36 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/3[0m
+2025-16-03 06:42:36 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:43:06 - INFO - Toutes les API ont leurs variables correctement chargées.
+2025-16-03 06:43:06 - INFO - Toutes les API ont leurs variables correctement chargées.
+2025-16-03 06:43:06 - INFO - Toutes les API ont leurs variables correctement chargées.
+2025-16-03 06:43:06 - INFO - Début de l'extraction des offres d'emploi...
+2025-16-03 06:43:06 - INFO - Récupération de la page 1 pour 'Data Engineer'...
+2025-16-03 06:43:06 - INFO - Requête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/1
+2025-16-03 06:43:06 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:43:08 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/1?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69756
+2025-16-03 06:43:08 - INFO - Nombre total d'annonces disponibles : 2125
+2025-16-03 06:43:08 - INFO - Récupération de la page 2 pour 'Data Engineer'...
+2025-16-03 06:43:08 - INFO - Requête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/2
+2025-16-03 06:43:08 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:43:09 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/2?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69507
+2025-16-03 06:43:09 - INFO - Récupération de la page 3 pour 'Data Engineer'...
+2025-16-03 06:43:09 - INFO - Requête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/3
+2025-16-03 06:43:09 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:44:02 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:02 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:02 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:02 - INFO - [92m[1mDébut de l'extraction des offres d'emploi...[0m
+2025-16-03 06:44:02 - INFO - [92m[1mRécupération de la page 1 pour 'Data Engineer'...[0m
+2025-16-03 06:44:02 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/1[0m
+2025-16-03 06:44:02 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:44:03 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/1?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69756
+2025-16-03 06:44:04 - INFO - [92m[1mNombre total d'annonces disponibles : 2125[0m
+2025-16-03 06:44:04 - INFO - [92m[1mRécupération de la page 2 pour 'Data Engineer'...[0m
+2025-16-03 06:44:04 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/2[0m
+2025-16-03 06:44:04 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:44:05 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/2?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69507
+2025-16-03 06:44:05 - INFO - [92m[1mRécupération de la page 3 pour 'Data Engineer'...[0m
+2025-16-03 06:44:05 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/3[0m
+2025-16-03 06:44:05 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:44:19 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:19 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:19 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:19 - INFO - [92m[1mDébut de l'extraction des offres d'emploi...[0m
+2025-16-03 06:44:19 - INFO - [92m[1mRécupération de la page 1 pour 'Data Engineer'...[0m
+2025-16-03 06:44:19 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/1[0m
+2025-16-03 06:44:19 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:44:21 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/1?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69756
+2025-16-03 06:44:21 - INFO - [92m[1mNombre total d'annonces disponibles : 2125[0m
+2025-16-03 06:44:21 - INFO - [92m[1mRécupération de la page 2 pour 'Data Engineer'...[0m
+2025-16-03 06:44:21 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/2[0m
+2025-16-03 06:44:21 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:44:30 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:30 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:30 - INFO - [92m[1mToutes les API ont leurs variables correctement chargées.[0m
+2025-16-03 06:44:30 - INFO - [92m[1mDébut de l'extraction des offres d'emploi...[0m
+2025-16-03 06:44:30 - INFO - [92m[1mRécupération de la page 1 pour 'Data Engineer'...[0m
+2025-16-03 06:44:30 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/1[0m
+2025-16-03 06:44:30 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
+2025-16-03 06:44:32 - DEBUG - https://api.adzuna.com:443 "GET /v1/api/jobs/fr/search/1?app_id=32ef67cb&app_key=d0de80caad59f6b74b0df7ab82baa018&what_phrase=Data+Engineer&results_per_page=50 HTTP/11" 200 69756
+2025-16-03 06:44:32 - INFO - [92m[1mNombre total d'annonces disponibles : 2125[0m
+2025-16-03 06:44:32 - INFO - [92m[1mRécupération de la page 2 pour 'Data Engineer'...[0m
+2025-16-03 06:44:32 - INFO - [92m[1mRequête envoyée à Adzuna à l'url https://api.adzuna.com/v1/api/jobs/fr/search/2[0m
+2025-16-03 06:44:32 - DEBUG - Starting new HTTPS connection (1): api.adzuna.com:443
