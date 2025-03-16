@@ -4,7 +4,7 @@ __pycache__
 .venv/
 .env
 !.gitignore
-data/raw_data/*
+data/
 tests/
-!data/raw_data/.gitkeep
+!data/.gitkeep
 Todo.md
