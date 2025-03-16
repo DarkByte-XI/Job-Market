@@ -2,7 +2,6 @@ import logging
 from colorama import Fore, Style, init
 import os
 
-init(convert=True)
 
 # Configuration chemins des répertoires
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
