@@ -1,4 +1,6 @@
 import os
+from os.path import exists
+
 from config.logger import *
 from jobs_api.utils import load_json_safely, save_to_json
 from jobs_api.adzuna_api import fetch_jobs_from_adzuna
@@ -11,11 +13,20 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 
 # Chemins vers les fichiers de ressources
 RESSOURCES_DIR = os.path.join(BASE_DIR, "ressources")
+
+# S'assurer que le répertoire des fichiers de ressources esr créé.
+os.makedirs(RESSOURCES_DIR, exist_ok=True)
+
 JOB_KEYWORDS_FILE = os.path.join(RESSOURCES_DIR, "job_keywords.json")
 APPELLATIONS_FILE = os.path.join(RESSOURCES_DIR, "data_appellations.json")
 
 # Chemin vers le répértoire de sauvegarde
 RAW_DATA_DIR = os.path.join(BASE_DIR, "data/raw_data")
+
+# S'assurer que le répertoire des données brutes est crée
+os.makedirs(RAW_DATA_DIR, exist_ok=True)
+
+# Définir les répertoires des fichiers de sortie pour chaque source de données
 ADZUNA_OUTPUT_DIR = os.path.join(RAW_DATA_DIR, "adzuna/output")
 FT_OUTPUT_DIR = os.path.join(RAW_DATA_DIR, "france_travail/output")
 JS_OUTPUT_DIR = os.path.join(RAW_DATA_DIR, "jsearch/output")

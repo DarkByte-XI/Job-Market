@@ -4,7 +4,11 @@ __pycache__
 .venv/
 .env
 !.gitignore
+!data/.gitkeep
+data/processed_data/*
 data/raw_data/*
 tests/
-!data/raw_data/.gitkeep
 Todo.md
+ressources/job_market_key.pem
+logs/*
+src/db/config.py
