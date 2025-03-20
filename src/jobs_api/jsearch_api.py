@@ -2,8 +2,6 @@ import requests
 from config.logger import *
 from config.config_loader import get_config
 
-# Configuration des logs
-logging.basicConfig(level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
 # Charger les credentials API
 jsearch_config = get_config()
@@ -39,6 +37,7 @@ def fetch_jobs_from_jsearch(query, country="fr", pages=1):
             "date_posted": "all"
         }
 
+        info(f"Requête envoyé à JSearch à l'url {url}")
         try:
             response = requests.get(url, headers = headers, params = params)
             response.raise_for_status()
@@ -50,6 +49,7 @@ def fetch_jobs_from_jsearch(query, country="fr", pages=1):
 
             # Si aucune offre retournée sur une page, on arrête la pagination
             if not jobs:
+                warning(f"Aucune offre retournée sur la page {page}")
                 break
 
         except requests.exceptions.RequestException as e:

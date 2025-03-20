@@ -4,50 +4,38 @@ import json
 from config.logger import *
 from datetime import datetime
 
-# Configuration des logs
-logging.basicConfig(level = logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
-# Répertoire principal pour les données brutes
-
-
-def save_to_json(data, source, filename=None):
+def save_to_json(data, directory, source, filename=None):
     """
-    Sauvegarde les données brutes dans le répertoire approprié sous `data/raw_data/{source}/output/`.
+    Sauvegarde les données JSON dans le répertoire spécifié.
 
-    :param data: Données à sauvegarder (liste ou dictionnaire).
-    :param source: Nom de la source ("Adzuna", "france_travail", "jsearch").
-    :param filename: Nom du fichier (optionnel, sinon timestamp utilisé).
+    :param data : Données à sauvegarder (liste ou dictionnaire).
+    :param directory : Dossier où stocker le fichier (ex: 'data/raw_data/adzuna' ou 'data/processed_data').
+    :param source : Source de laquelle on sauvegarde la donnée, ici une API parmi celles traitées.
+    :param filename : Nom du fichier (optionnel, sinon timestamp utilisé).
     """
-    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-    RAW_DATA_DIR = os.path.join(BASE_DIR, "data/raw_data")
-
     if not data:
-        warning(f"Aucune donnée à sauvegarder pour {source}.")
+        warning(f"Aucune donnée à sauvegarder dans {directory}.")
         return
 
-    # Vérifier que la source est valide
-    source = source.lower()
-    if source not in ["adzuna", "france_travail", "jsearch"]:
-        error(f"Source inconnue : {source}. Sauvegarde annulée.")
-        return
-
-    # Définir le dossier de sortie
-    output_dir = os.path.join(RAW_DATA_DIR, source, "output")
-    os.makedirs(output_dir, exist_ok = True)
+    # Définir le dossier de sortie de manière dynamique
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+    output_dir = os.path.join(BASE_DIR, directory)
+    os.makedirs(output_dir, exist_ok=True)
 
     # Générer un nom de fichier si non fourni
     if not filename:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{source}_jobs_{timestamp}.json"
+        filename = f"{source}_{timestamp}.json"
 
     output_path = os.path.join(output_dir, filename)
 
     try:
-        with open(output_path, "w", encoding = "utf-8") as file:
-            json.dump(data, file, ensure_ascii = False, indent = 2)
+        with open(output_path, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
         info(f"Données sauvegardées dans {output_path}")
     except Exception as e:
-        error(f"Erreur lors de la sauvegarde de {source} : {e}")
+        error(f"Erreur lors de la sauvegarde dans {directory} : {e}")
 
 
 def sanitize_filename(filename) :
