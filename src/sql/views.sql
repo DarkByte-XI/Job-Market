@@ -44,7 +44,7 @@ SELECT
 FROM job_offers j
 LEFT JOIN locations l ON j.location_id = l.location_id
 LEFT JOIN (
-    SELECT job_id, description FROM adzuna_offers
+    SELECT job_id, description FROM france_travail_offers
     UNION ALL
     SELECT job_id, description FROM france_travail_offers
     UNION ALL

@@ -67,7 +67,7 @@ def insert_location(cur, location, code_postal, longitude, latitude, country):
 
     # Comparaison avec IS NOT DISTINCT FROM pour gérer les NULL
     cur.execute(
-            "SELECT location_id FROM locations WHERE location IS NOT DISTINCT FROM %s AND code_postal IS NOT DISTINCT FROM %s AND country IS NOT DISTINCT FROM %s;",
+        "SELECT location_id FROM locations WHERE location IS NOT DISTINCT FROM %s AND code_postal IS NOT DISTINCT FROM %s AND country IS NOT DISTINCT FROM %s;",
         (location, code_postal, country)
     )
     existing = cur.fetchone()
@@ -125,7 +125,8 @@ def insert_job_offer(cur, job):
     )
 
 def insert_specific_source_table(cur, job_id, job):
-    """Insère les données spécifiques à chaque source dans la table correspondante."""
+    """Insère les données spécifiques à chaque source dans la table correspondante, y compris la description
+    pour France Travail et Jsearch. Adzuna scinde la description, raison pour laquelle sa valeur sera nulle."""
     source_table_map = {
         "Adzuna": "adzuna_offers",
         "France Travail": "france_travail_offers",
@@ -136,10 +137,13 @@ def insert_specific_source_table(cur, job_id, job):
     if not table_name:
         return
 
+    # Extraction de la description avec une valeur par défaut vide si non présente.
+    description = job.get("description", "").strip()
+
     cur.execute(f"""
         INSERT INTO {table_name} (job_id, title, contract_type, sector, description)
         VALUES (%s, %s, %s, %s, %s);
-    """, (job_id, job.get("title"), job.get("contract_type"), job.get("sector"), job.get("description")))
+    """, (job_id, job.get("title"), job.get("contract_type"), job.get("sector"), description))
 
 def process_job(job):
     """
@@ -154,7 +158,7 @@ def process_job(job):
                     warning("Offre {} ignorée (données insuffisantes).".format(job.get("external_id", "N/A")))
                     return False, job.get("external_id", "N/A")
 
-                # Insertion dans job_offers (la table job_offers ne gère pas country, c'est dans locations)
+                # Insertion dans job_offers
                 cur.execute("""
                     INSERT INTO job_offers (source_id, external_id, company_id, location_id, salary_min, salary_max, created_at)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
