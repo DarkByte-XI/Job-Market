@@ -6,7 +6,6 @@ def connect_db():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         #info("Connexion réussie à AWS RDS PostgreSQL")
-        info("Connexion réussie à PostgreSQL")
         return conn
     except Exception as e:
         error(f" Erreur de connexion : {e}")
