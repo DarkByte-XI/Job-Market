@@ -71,6 +71,23 @@ else:
         communes_nom_dict = {}
 
 
+def harmonize_company_name(company_name):
+    """
+    Normalise le nom de l'entreprise pour harmoniser les variations d'écriture.
+    Par exemple, "SNCF Connect", "Sncf connect" et "SNCF connect" seront transformés en une même chaîne,
+    ce qui permet de réduire les doublons lors de la déduplication.
+    """
+    if not company_name or not isinstance(company_name, str):
+        return None
+    # Normalisation de base : supprime les accents, met en majuscules, remplace les tirets et apostrophes par des espaces, etc.
+    normalized = normalize_text(company_name)
+    # On peut ajouter ici des règles supplémentaires, par exemple supprimer des suffixes ou mots redondants
+    # Exemples (à adapter selon les besoins) :
+    # normalized = re.sub(r"\b(INC|CORP|LIMITED|SARL|LLC)\b", "", normalized)
+    # normalized = re.sub(r"\s+", " ", normalized).strip()
+    return normalized
+
+
 def match_commune_insee(commune):
     """
     Recherche le code postal à partir de `Libellé_d_acheminement` ou `Nom_de_la_commune` dans le fichier INSEE.
@@ -134,7 +151,7 @@ def extract_salary_france_travail(salary_text):
     :return: Tuple (salary_min, salary_max) ou (None, None) si aucune valeur trouvée.
     """
 
-    if not salary_text or any(term in salary_text.lower() for term in ["non renseigné", "salaire à négocier"]):
+    if not salary_text or any(term in salary_text.lower() for term in ["", "à négocier", "selon profil"]):
         return None, None
 
     # 1) Retirer "sur 12 mois" (ou variante sur 12.0 mois) pour ne garder que la partie avant
@@ -399,7 +416,7 @@ TRANSFORMATION_FUNCTIONS = {
         "source": "Adzuna",
         "external_id": job.get("id"),
         "title": job.get("title"),
-        "company": job.get("company", {}).get("display_name"),
+        "company": harmonize_company_name(job.get("company", {}).get("display_name")),
         "location": extract_location_adzuna(job.get("location"))[0],
         "code_postal": extract_location_adzuna(job.get("location"))[1],
         "longitude": job.get("longitude"),
@@ -416,7 +433,7 @@ TRANSFORMATION_FUNCTIONS = {
         "source": "France Travail",
         "external_id": job.get("id"),
         "title": job.get("intitule"),
-        "company": job.get("entreprise", {}).get("nom"),
+        "company": harmonize_company_name(job.get("entreprise", {}).get("nom")),
         "location": extract_location_france_travail(job.get("lieuTravail"))[0],
         "code_postal": extract_location_france_travail(job.get("lieuTravail"))[1],
         "longitude": job.get("lieuTravail", {}).get("longitude"),
@@ -433,7 +450,7 @@ TRANSFORMATION_FUNCTIONS = {
         "source": "JSearch",
         "external_id": job.get("job_id"),
         "title": job.get("job_title"),
-        "company": job.get("employer_name"),
+        "company": harmonize_company_name(job.get("employer_name")),
         "location": extract_location_jsearch(job.get("job_location"))[0],
         "code_postal": extract_location_jsearch(job.get("job_location"))[1],
         "longitude": job.get("job_longitude"),
@@ -488,7 +505,11 @@ def deduplicate_after_merge(jobs):
     """
     unique_jobs = {}
     for job in jobs:
-        key = (job["title"].lower(), job["company"].lower() if job["company"] else None)
+        # Normaliser le titre (on le met en minuscule pour la comparaison)
+        title_key = job.get("title", "").strip().lower()
+        # Harmoniser le nom de l'entreprise
+        company_key = harmonize_company_name(job.get("company"))
+        key = (title_key, company_key)
         if key not in unique_jobs:
             unique_jobs[key] = job
     return list(unique_jobs.values())
