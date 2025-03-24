@@ -54,6 +54,6 @@ def get_config():
     if missing_apis_credentials:
         warning(f"Certaines API ont des variables manquantes : {', '.join(missing_apis_credentials)}")
     else:
-        info("Toutes les API ont leurs variables correctement chargées.")
+        pass
 
     return config
