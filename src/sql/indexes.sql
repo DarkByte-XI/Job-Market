@@ -23,3 +23,6 @@ CREATE INDEX idx_description_search_france_travail ON france_travail_offers USIN
 -- JSearch
 CREATE INDEX idx_title_search_jsearch ON jsearch_offers USING GIN (to_tsvector('french', title));
 CREATE INDEX idx_description_search_jsearch ON jsearch_offers USING GIN (to_tsvector('french', description));
+
+-- Logs
+--CREATE INDEX idx_job_id_logs_ ON job_offers_log(job_id)

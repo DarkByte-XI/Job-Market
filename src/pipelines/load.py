@@ -5,6 +5,8 @@ from db.db_connection import connect_db
 from config.logger import info, warning, error, critical  # Import des fonctions de log
 from pipelines.transform import PROCESSED_DATA_DIR
 
+
+
 def get_latest_file(directory):
     """
     Récupère le fichier JSON le plus récent dans le répertoire spécifié.
@@ -22,6 +24,8 @@ def get_latest_file(directory):
         error("Erreur lors de la recherche du fichier : {}".format(e))
         return None
 
+
+
 def insert_source(cur, source_name):
     """Insère une source et retourne son ID.
     Si le nom est manquant ou vide, l'offre sera ignorée (retourne None)."""
@@ -35,6 +39,8 @@ def insert_source(cur, source_name):
     )
     return cur.fetchone()[0]
 
+
+
 def insert_company(cur, company_name):
     """
     Insère une entreprise et retourne son ID.
@@ -47,6 +53,8 @@ def insert_company(cur, company_name):
         (company_name,)
     )
     return cur.fetchone()[0]
+
+
 
 def insert_location(cur, location, code_postal, longitude, latitude, country):
     """
@@ -67,7 +75,7 @@ def insert_location(cur, location, code_postal, longitude, latitude, country):
 
     # Comparaison avec IS NOT DISTINCT FROM pour gérer les NULL
     cur.execute(
-        "SELECT location_id FROM locations WHERE location IS NOT DISTINCT FROM %s AND code_postal IS NOT DISTINCT FROM %s AND country IS NOT DISTINCT FROM %s;",
+            "SELECT location_id FROM locations WHERE location IS NOT DISTINCT FROM %s AND code_postal IS NOT DISTINCT FROM %s AND country IS NOT DISTINCT FROM %s;",
         (location, code_postal, country)
     )
     existing = cur.fetchone()
@@ -79,6 +87,8 @@ def insert_location(cur, location, code_postal, longitude, latitude, country):
         (location, code_postal, longitude, latitude, country)
     )
     return cur.fetchone()[0]
+
+
 
 def insert_job_offer(cur, job):
     """
@@ -124,9 +134,10 @@ def insert_job_offer(cur, job):
         job["created_at"]
     )
 
+
+
 def insert_specific_source_table(cur, job_id, job):
-    """Insère les données spécifiques à chaque source dans la table correspondante, y compris la description
-    pour France Travail et Jsearch. Adzuna scinde la description, raison pour laquelle sa valeur sera nulle."""
+    """Insère les données spécifiques à chaque source dans la table correspondante."""
     source_table_map = {
         "Adzuna": "adzuna_offers",
         "France Travail": "france_travail_offers",
@@ -137,13 +148,12 @@ def insert_specific_source_table(cur, job_id, job):
     if not table_name:
         return
 
-    # Extraction de la description avec une valeur par défaut vide si non présente.
-    description = job.get("description", "").strip()
-
     cur.execute(f"""
         INSERT INTO {table_name} (job_id, title, contract_type, sector, description)
         VALUES (%s, %s, %s, %s, %s);
-    """, (job_id, job.get("title"), job.get("contract_type"), job.get("sector"), description))
+    """, (job_id, job.get("title"), job.get("contract_type"), job.get("sector"), job.get("description")))
+
+
 
 def process_job(job):
     """
@@ -172,6 +182,8 @@ def process_job(job):
     except Exception as e:
         critical("Erreur lors de l'insertion de l'offre {} : {}".format(job.get("external_id", "N/A"), e))
         return False, job.get("external_id", "N/A")
+
+
 
 def load_jobs_multithreaded(jobs, max_threads):
     """
@@ -205,6 +217,8 @@ def load_jobs_multithreaded(jobs, max_threads):
     info("{} offres ignorées : {}".format(len(skipped_offers), ', '.join(skipped_offers)))
     return total_inserted, skipped_offers
 
+
+
 def load_jobs_to_db():
     """Charge les offres du dernier fichier transformé et les insère en base de données en parallèle."""
     file_path = get_latest_file(PROCESSED_DATA_DIR)
@@ -228,6 +242,7 @@ def load_jobs_to_db():
         critical("Erreur lors de la lecture du fichier JSON : {}".format(e))
     except Exception as e:
         critical("Erreur générale : {}".format(e))
+
 
 if __name__ == "__main__":
     load_jobs_to_db()

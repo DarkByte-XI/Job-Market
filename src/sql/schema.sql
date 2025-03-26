@@ -1,11 +1,12 @@
 -- Suppression des tables existantes avec leurs dépendances
-DROP TABLE IF EXISTS jsearch_offers CASCADE;
-DROP TABLE IF EXISTS france_travail_offers CASCADE;
-DROP TABLE IF EXISTS adzuna_offers CASCADE;
-DROP TABLE IF EXISTS job_offers CASCADE;
-DROP TABLE IF EXISTS locations CASCADE;
-DROP TABLE IF EXISTS companies CASCADE;
-DROP TABLE IF EXISTS sources CASCADE;
+--DROP TABLE IF EXISTS jsearch_offers CASCADE;
+--DROP TABLE IF EXISTS france_travail_offers CASCADE;
+--DROP TABLE IF EXISTS adzuna_offers CASCADE;
+--DROP TABLE IF EXISTS job_offers CASCADE;
+--DROP TABLE IF EXISTS locations CASCADE;
+--DROP TABLE IF EXISTS companies CASCADE;
+--DROP TABLE IF EXISTS sources CASCADE;
+DROP TABLE IF EXISTS job_offers_log CASCADE;
 
 -- Création de la table des sources
 CREATE TABLE sources (
@@ -32,7 +33,7 @@ CREATE TABLE locations (
 -- Création de la table principale des offres d'emploi
 CREATE TABLE job_offers (
     job_id SERIAL PRIMARY KEY,
-    source_id INT REFERENCES sources(source_id) ON DELETE CASCADE,
+    source_id INT NOT NULL REFERENCES sources(source_id) ON DELETE CASCADE,
     external_id VARCHAR(255) NOT NULL,
     company_id INT REFERENCES companies(company_id) ON DELETE CASCADE,
     location_id INT NOT NULL REFERENCES locations(location_id) ON DELETE CASCADE,
@@ -68,3 +69,14 @@ CREATE TABLE jsearch_offers (
     sector VARCHAR(255),
     description TEXT
 );
+
+-- Table spécifique aux logs
+--CREATE TABLE job_offers_log (
+--    log_id SERIAL PRIMARY KEY,
+--    job_id INT REFERENCES job_offers(job_id) ON DELETE CASCADE,
+--    action VARCHAR(20) NOT NULL,  -- 'insert', 'update', 'delete'
+--    created_at TIMESTAMP NOT NULL,
+--    updated_at TIMESTAMP,
+--    deleted_at TIMESTAMP,
+--    log_timestamp TIMESTAMP NOT NULL DEFAULT NOW()
+--);
