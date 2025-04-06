@@ -1,6 +1,3 @@
-import os
-from os.path import exists
-
 from config.logger import *
 from jobs_api.utils import load_json_safely, save_to_json
 from jobs_api.adzuna_api import fetch_jobs_from_adzuna
@@ -23,7 +20,7 @@ APPELLATIONS_FILE = os.path.join(RESSOURCES_DIR, "data_appellations.json")
 # Chemin vers le répértoire de sauvegarde
 RAW_DATA_DIR = os.path.join(BASE_DIR, "data/raw_data")
 
-# S'assurer que le répertoire des données brutes est crée
+# S'assurer que le répertoire des données brutes est créé
 os.makedirs(RAW_DATA_DIR, exist_ok=True)
 
 # Définir les répertoires des fichiers de sortie pour chaque source de données
@@ -68,9 +65,13 @@ def extract_all_jobs():
     all_jobs.extend(france_travail_jobs)
 
     # Extraction depuis JSearch
-    jsearch_jobs = fetch_jobs_from_jsearch("Data Engineer", pages = 10)
-    save_to_json(jsearch_jobs, JS_OUTPUT_DIR, "jsearch")  # Sauvegarde brute
-    all_jobs.extend(jsearch_jobs)
+    jsearch_all_jobs = []
+    for query in job_queries:
+        jsearch_jobs = fetch_jobs_from_jsearch(query, pages = 20, country = "fr")
+        jsearch_all_jobs.extend(jsearch_jobs)
+
+    save_to_json(jsearch_all_jobs, JS_OUTPUT_DIR, "jsearch")  # Sauvegarde brute
+    all_jobs.extend(jsearch_all_jobs)
 
     return all_jobs  # Retourne les données brutes, sans modification
 
