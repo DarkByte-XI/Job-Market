@@ -136,28 +136,31 @@ def insert_job_offer(cur, job):
 
 
 
-def insert_specific_source_table(cur, job_id, job):
-    """Insère les données spécifiques à chaque source dans la table correspondante."""
+def upsert_specific_source_table(cur, job_id, job):
+    """Insère ou met à jour les données spécifiques à chaque source dans la table correspondante."""
     source_table_map = {
         "Adzuna": "adzuna_offers",
         "France Travail": "france_travail_offers",
         "JSearch": "jsearch_offers"
     }
-
     table_name = source_table_map.get(job.get("source"))
     if not table_name:
         return
-
     cur.execute(f"""
         INSERT INTO {table_name} (job_id, title, contract_type, sector, description)
-        VALUES (%s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (job_id) DO UPDATE SET
+            title = EXCLUDED.title,
+            contract_type = EXCLUDED.contract_type,
+            sector = EXCLUDED.sector,
+            description = EXCLUDED.description;
     """, (job_id, job.get("title"), job.get("contract_type"), job.get("sector"), job.get("description")))
 
 
 
 def process_job(job):
     """
-    Traite une offre d'emploi : insertion dans job_offers et dans la table spécifique si applicable.
+    Traite une offre d'emploi : insertion ou mise à jour dans job_offers et dans la table spécifique si applicable.
     Retourne un tuple (succès: bool, external_id: str).
     """
     try:
@@ -168,19 +171,27 @@ def process_job(job):
                     warning("Offre {} ignorée (données insuffisantes).".format(job.get("external_id", "N/A")))
                     return False, job.get("external_id", "N/A")
 
-                # Insertion dans job_offers
+                # Upsert dans job_offers
                 cur.execute("""
                     INSERT INTO job_offers (source_id, external_id, company_id, location_id, salary_min, salary_max, created_at)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (external_id, source_id)
+                    DO UPDATE SET 
+                        company_id = EXCLUDED.company_id,
+                        location_id = EXCLUDED.location_id,
+                        salary_min = EXCLUDED.salary_min,
+                        salary_max = EXCLUDED.salary_max,
+                        created_at = EXCLUDED.created_at
                     RETURNING job_id;
                 """, job_data)
                 job_id = cur.fetchone()[0]
 
-                insert_specific_source_table(cur, job_id, job)
+                # Upsert dans la table spécifique en fonction de la source
+                upsert_specific_source_table(cur, job_id, job)
             conn.commit()
         return True, job.get("external_id", "N/A")
     except Exception as e:
-        critical("Erreur lors de l'insertion de l'offre {} : {}".format(job.get("external_id", "N/A"), e))
+        critical("Erreur lors de l'insertion/mise à jour de l'offre {} : {}".format(job.get("external_id", "N/A"), e))
         return False, job.get("external_id", "N/A")
 
 
