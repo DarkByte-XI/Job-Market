@@ -10,7 +10,7 @@ JSEARCH_HOST = jsearch_config["jsearch"]["HOST"]
 JSEARCH_KEY = jsearch_config["jsearch"]["APP_KEY"]
 
 
-def fetch_jobs_from_jsearch(query, country="fr", pages=1):
+def fetch_jobs_from_jsearch(query, country, pages):
     """
     Récupère les offres d'emploi depuis l'API JSearch avec pagination.
 
