@@ -410,6 +410,37 @@ def convert_to_timestamp(date_str):
     return None
 
 
+def convert_relative_time(relative_str):
+    """
+    Convertit une chaîne du format "il y a X jours" ou "il y a X heures"
+    en un timestamp PostgreSQL-compatible ("%Y-%m-%d %H:%M:%S").
+    """
+    import re
+    from datetime import datetime, timedelta
+
+    if not relative_str or not isinstance(relative_str, str):
+        return None
+
+    # Mettre la chaîne en minuscules et supprimer les espaces superflus
+    relative_str = relative_str.lower().strip()
+
+    # Rechercher le pattern "il y a <nombre> <unité>"
+    match = re.search(r"il y a (\d+)\s*(jours?|heures?)", relative_str)
+    if match:
+        number = int(match.group(1))
+        unit = match.group(2)
+        now = datetime.now()
+        if "jour" in unit:
+            delta = timedelta(days = number)
+        elif "heure" in unit:
+            delta = timedelta(hours = number)
+        else:
+            return None
+        created_time = now - delta
+        return created_time.strftime("%Y-%m-%d %H:%M:%S")
+
+    return None
+
 
 TRANSFORMATION_FUNCTIONS = {
     "adzuna": lambda job: {
@@ -461,7 +492,7 @@ TRANSFORMATION_FUNCTIONS = {
         "sector": None,
         "description": clean_description(job.get("job_description")),
         "country": extract_location_jsearch(job.get("job_country"))[2],
-        "created_at": convert_to_timestamp(job.get("job_posted_at_timestamp"))
+        "created_at": convert_relative_time(job.get("job_posted_at"))
     }
 }
 
