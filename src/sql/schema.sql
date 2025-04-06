@@ -71,12 +71,12 @@ CREATE TABLE jsearch_offers (
 );
 
 -- Table spécifique aux logs
---CREATE TABLE job_offers_log (
---    log_id SERIAL PRIMARY KEY,
---    job_id INT REFERENCES job_offers(job_id) ON DELETE CASCADE,
---    action VARCHAR(20) NOT NULL,  -- 'insert', 'update', 'delete'
---    created_at TIMESTAMP NOT NULL,
---    updated_at TIMESTAMP,
---    deleted_at TIMESTAMP,
---    log_timestamp TIMESTAMP NOT NULL DEFAULT NOW()
---);
+CREATE TABLE job_offers_log (
+    log_id SERIAL PRIMARY KEY,
+    job_id INT REFERENCES job_offers(job_id) ON DELETE CASCADE,
+    action VARCHAR(255) NOT NULL,  -- 'insert', 'update', 'delete'
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    log_timestamp TIMESTAMP NOT NULL DEFAULT NOW()
+);

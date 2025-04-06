@@ -3,10 +3,6 @@ CREATE INDEX idx_job_offers_source ON job_offers(source_id);
 CREATE INDEX idx_job_offers_company ON job_offers(company_id);
 CREATE INDEX idx_job_offers_location ON job_offers(location_id);
 
--- L'unicité de (external_id, source_id) est déjà assurée par la contrainte UNIQUE.
--- Si besoin d'un index supplémentaire, il peut être recréé, mais ce n'est généralement pas nécessaire.
--- CREATE UNIQUE INDEX idx_job_offers_external ON job_offers(external_id, source_id);
-
 -- Index sur created_at pour optimiser les tris et recherches par date
 CREATE INDEX idx_job_offers_created_at ON job_offers(created_at DESC);
 
@@ -25,4 +21,4 @@ CREATE INDEX idx_title_search_jsearch ON jsearch_offers USING GIN (to_tsvector('
 CREATE INDEX idx_description_search_jsearch ON jsearch_offers USING GIN (to_tsvector('french', description));
 
 -- Logs
---CREATE INDEX idx_job_id_logs_ ON job_offers_log(job_id)
+CREATE INDEX idx_job_id_logs_ ON job_offers_log(job_id)
