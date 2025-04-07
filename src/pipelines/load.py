@@ -225,7 +225,7 @@ def load_jobs_multithreaded(jobs, max_threads):
             skipped_offers.append(external_id)
 
     info("{} offres insérées avec succès.".format(total_inserted))
-    info("{} offres ignorées : {}".format(len(skipped_offers), ', '.join(skipped_offers)))
+    info(f"{len(skipped_offers)} Offres ignorées")
     return total_inserted, skipped_offers
 
 
