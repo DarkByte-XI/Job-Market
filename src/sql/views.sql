@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW vw_job_offers_summary AS
 SELECT
+    j.status,
     j.job_id,
     j.external_id,
     s.name AS source,
@@ -50,7 +51,3 @@ LEFT JOIN (
     UNION ALL
     SELECT job_id, description FROM jsearch_offers
 ) spec ON j.job_id = spec.job_id;
-
-SELECT * FROM vw_job_offers_desc_country
-
-

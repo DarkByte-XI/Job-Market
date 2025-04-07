@@ -11,8 +11,11 @@ BEGIN
         VALUES (NEW.job_id, 'update_job_offers', NOW());
         RETURN NEW;
     ELSIF (TG_OP = 'DELETE') THEN
+        -- On intercepte la suppression et on effectue une soft delete
         INSERT INTO job_offers_log (job_id, action, created_at, deleted_at)
         VALUES (OLD.job_id, 'delete_job_offers', NOW(), NOW());
+        -- Mise à jour du status à 'inactive' pour la soft delete
+        UPDATE job_offers SET status = 'inactive' WHERE job_id = OLD.job_id;
         RETURN OLD;
     END IF;
     RETURN NULL;
@@ -36,10 +39,13 @@ BEGIN
     ELSIF (TG_OP = 'UPDATE') THEN
         INSERT INTO job_offers_log (job_id, action, created_at)
         VALUES (NEW.job_id, 'update_' || TG_TABLE_NAME, NOW());
+        -- En cas d'update sur la source, on remet le status à 'active'
+        UPDATE job_offers SET status = 'active' WHERE job_id = NEW.job_id;
         RETURN NEW;
     ELSIF (TG_OP = 'DELETE') THEN
         INSERT INTO job_offers_log (job_id, action, created_at, deleted_at)
         VALUES (OLD.job_id, 'delete_' || TG_TABLE_NAME, NOW(), NOW());
+        UPDATE job_offers SET status = 'inactive' WHERE job_id = OLD.job_id;
         RETURN OLD;
     END IF;
     RETURN NULL;
