@@ -40,9 +40,9 @@ def load_processed_offers(file_path: str):
 
 
 def build_recommendation_engine_from_folder(folder_path: str,
-                                            weight_title: int = 2,
+                                            weight_title: int = 1,
                                             weight_location: int = 1,
-                                            weight_description: int = 3):
+                                            weight_description: int = 0):
     """
     Construit le moteur de recommandation à partir du dernier fichier JSON transformé
     trouvé dans le dossier donné.
@@ -57,20 +57,15 @@ def build_recommendation_engine_from_folder(folder_path: str,
 
     combined_text_list = []
     for _offer in processed_offers:
-        # On suppose que dans le fichier transformé, les champs sont "title", "location" et "description"
-        data = prepare_offer_data({
-            "job_title": _offer.get("title", ""),
-            "location": _offer.get("location", ""),
-            "description": _offer.get("description", "")
-        })
-        # Ajustement de la pondération pour la description
-        current_weight_description = weight_description if data["description"] else 0
+        # Normalisation des données du fichier selon les règles de normalisation présentes dans data_preparation.py :
+        data = prepare_offer_data(_offer)
 
-        # Construction du texte combiné en répétant chaque champ selon sa pondération
+        # Combination des champs pour obtenir une sortie composé de toutes les informations :
+        current_weight_description = weight_description if data["description"] else 0
         combined_text = " ".join(
-            ([data["job_title"]] * weight_title) +
-            ([data["location"]] * weight_location) +
-            ([data["description"]] * current_weight_description)
+            [data["title"]] * weight_title +
+            [data["location"]] * weight_location +
+            [data["description"]] * current_weight_description
         )
         combined_text_list.append(combined_text)
 

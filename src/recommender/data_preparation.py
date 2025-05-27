@@ -23,14 +23,18 @@ def text_normalization(text: str) -> str:
 def prepare_offer_data(offer: dict) -> dict:
     """
     Prépare et nettoie les données d'une offre d'emploi.
-    On normalise l'intitulé, la localisation et la description.
+    → Normalise chaque valeur str.
+    → Convertit tout autre type (y compris None) en chaîne vide.
     """
-    prepared = {
-        "job_title": text_normalization(offer.get("job_title", "")),
-        "location": text_normalization(offer.get("location", "")),
-        "description": text_normalization(offer.get("description", "")),
-    }
-    return prepared
+    cleaned = {}
+    for key, value in offer.items():
+        # si c'est une chaîne non vide, on la normalise
+        if isinstance(value, str) and value:
+            cleaned[key] = text_normalization(value)
+        # sinon on met toujours une chaîne vide
+        else:
+            cleaned[key] = ""
+    return cleaned
 
 
 def vectorize_texts(texts: list[str]):
