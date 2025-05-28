@@ -12,3 +12,4 @@ Todo.md
 ressources/job_market_key.pem
 logs/*
 src/db/config.py
+src/sql/update_tables.sql
