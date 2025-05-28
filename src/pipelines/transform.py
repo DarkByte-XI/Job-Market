@@ -477,7 +477,7 @@ TRANSFORMATION_FUNCTIONS = {
         "description": clean_description(job.get("description")),
         "country": "FRANCE",
         "created_at": convert_to_timestamp(job.get("dateCreation")),
-        "apply_url": job.get("urlPostulation")
+        "apply_url": job.get("origineOffre", {}).get("urlOrigine")
     },
     "jsearch": lambda job: {
         "source": "JSearch",
