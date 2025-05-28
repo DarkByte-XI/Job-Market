@@ -459,6 +459,7 @@ TRANSFORMATION_FUNCTIONS = {
         "description": None,
         "country": extract_location_adzuna(job.get("location"))[2],
         "created_at": convert_to_timestamp(job.get("created")),
+        "apply_url": job.get("redirect_url")
     },
     "france_travail": lambda job: {
         "source": "France Travail",
@@ -475,7 +476,8 @@ TRANSFORMATION_FUNCTIONS = {
         "sector": job.get("secteurActiviteLibelle"),
         "description": clean_description(job.get("description")),
         "country": "FRANCE",
-        "created_at": convert_to_timestamp(job.get("dateCreation"))
+        "created_at": convert_to_timestamp(job.get("dateCreation")),
+        "apply_url": job.get("urlPostulation")
     },
     "jsearch": lambda job: {
         "source": "JSearch",
@@ -492,7 +494,8 @@ TRANSFORMATION_FUNCTIONS = {
         "sector": None,
         "description": clean_description(job.get("job_description")),
         "country": extract_location_jsearch(job.get("job_country"))[2],
-        "created_at": convert_relative_time(job.get("job_posted_at"))
+        "created_at": convert_relative_time(job.get("job_posted_at")),
+        "apply_url": job.get("job_apply_link")
     }
 }
 
