@@ -147,7 +147,7 @@ def upsert_specific_source_table(cur, job_id, job):
     if not table_name:
         return
     cur.execute(f"""
-        INSERT INTO {table_name} (job_id, title, contract_type, sector, description, apply_url))
+        INSERT INTO {table_name} (job_id, title, contract_type, sector, description, apply_url)
         VALUES (%s, %s, %s, %s, %s, %s)
         ON CONFLICT (job_id) DO UPDATE SET
             title = EXCLUDED.title,
