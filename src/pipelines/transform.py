@@ -506,7 +506,11 @@ def process_source_files(source, source_dir):
         warning(f"Dossier source introuvable pour {source}")
         return []
 
-    file_paths = [os.path.join(source_dir, f) for f in os.listdir(source_dir)]
+    file_paths = [
+    os.path.join(source_dir, f)
+    for f in os.listdir(source_dir)
+    if f.lower().endswith('.json')
+]
 
 
     def process_file(file_path):
