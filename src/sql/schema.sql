@@ -32,6 +32,7 @@ CREATE TABLE job_offers (
     salary_min INT,
     salary_max INT,
     created_at TIMESTAMP NOT NULL,
+    status TEXT,
     CONSTRAINT unique_external_source UNIQUE (external_id, source_id)
 );
 
