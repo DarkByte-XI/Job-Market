@@ -13,3 +13,5 @@ ressources/job_market_key.pem
 logs/*
 src/db/config.py
 src/sql/update_tables.sql
+src/API/orm_connexion.py
+src/API/models.py
