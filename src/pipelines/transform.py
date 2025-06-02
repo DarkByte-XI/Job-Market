@@ -7,7 +7,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from jobs_api.utils import save_to_json, load_json_safely
 from config.logger import warning, info, error
-from extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
+from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
 
 # Définition des chemins
 PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "data/processed_data")
@@ -459,6 +459,7 @@ TRANSFORMATION_FUNCTIONS = {
         "description": None,
         "country": extract_location_adzuna(job.get("location"))[2],
         "created_at": convert_to_timestamp(job.get("created")),
+        "apply_url": job.get("redirect_url")
     },
     "france_travail": lambda job: {
         "source": "France Travail",
@@ -475,7 +476,8 @@ TRANSFORMATION_FUNCTIONS = {
         "sector": job.get("secteurActiviteLibelle"),
         "description": clean_description(job.get("description")),
         "country": "FRANCE",
-        "created_at": convert_to_timestamp(job.get("dateCreation"))
+        "created_at": convert_to_timestamp(job.get("dateCreation")),
+        "apply_url": job.get("origineOffre", {}).get("urlOrigine")
     },
     "jsearch": lambda job: {
         "source": "JSearch",
@@ -492,7 +494,8 @@ TRANSFORMATION_FUNCTIONS = {
         "sector": None,
         "description": clean_description(job.get("job_description")),
         "country": extract_location_jsearch(job.get("job_country"))[2],
-        "created_at": convert_relative_time(job.get("job_posted_at"))
+        "created_at": convert_relative_time(job.get("job_posted_at")),
+        "apply_url": job.get("job_apply_link")
     }
 }
 
@@ -503,7 +506,11 @@ def process_source_files(source, source_dir):
         warning(f"Dossier source introuvable pour {source}")
         return []
 
-    file_paths = [os.path.join(source_dir, f) for f in os.listdir(source_dir)]
+    file_paths = [
+    os.path.join(source_dir, f)
+    for f in os.listdir(source_dir)
+    if f.lower().endswith('.json')
+]
 
 
     def process_file(file_path):

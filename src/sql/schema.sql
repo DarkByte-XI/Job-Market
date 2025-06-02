@@ -1,11 +1,3 @@
--- Suppression des tables existantes avec leurs dépendances
---DROP TABLE IF EXISTS jsearch_offers CASCADE;
---DROP TABLE IF EXISTS france_travail_offers CASCADE;
---DROP TABLE IF EXISTS adzuna_offers CASCADE;
---DROP TABLE IF EXISTS job_offers CASCADE;
---DROP TABLE IF EXISTS locations CASCADE;
---DROP TABLE IF EXISTS companies CASCADE;
---DROP TABLE IF EXISTS sources CASCADE;
 DROP TABLE IF EXISTS job_offers_log CASCADE;
 
 -- Création de la table des sources
@@ -40,6 +32,7 @@ CREATE TABLE job_offers (
     salary_min INT,
     salary_max INT,
     created_at TIMESTAMP NOT NULL,
+    status TEXT,
     CONSTRAINT unique_external_source UNIQUE (external_id, source_id)
 );
 
@@ -49,7 +42,8 @@ CREATE TABLE adzuna_offers (
     title VARCHAR(255) NOT NULL,
     contract_type VARCHAR(50),
     sector VARCHAR(255),
-    description TEXT
+    description TEXT,
+    apply_url TEXT
 );
 
 -- Table spécifique pour France Travail
@@ -58,7 +52,8 @@ CREATE TABLE france_travail_offers (
     title VARCHAR(255) NOT NULL,
     contract_type VARCHAR(50),
     sector VARCHAR(255),
-    description TEXT
+    description TEXT,
+    apply_url TEXT
 );
 
 -- Table spécifique pour JSearch
@@ -67,7 +62,8 @@ CREATE TABLE jsearch_offers (
     title VARCHAR(255) NOT NULL,
     contract_type VARCHAR(50),
     sector VARCHAR(255),
-    description TEXT
+    description TEXT,
+    apply_url TEXT
 );
 
 -- Table spécifique aux logs
