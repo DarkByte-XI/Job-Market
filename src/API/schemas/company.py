@@ -1,8 +1,5 @@
 from pydantic import BaseModel
 
 class CompanyResponse(BaseModel):
-    company_id: int
+    id: str
     name: str
-
-    class Config:
-        orm_mode = True

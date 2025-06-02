@@ -20,18 +20,22 @@ def text_normalization(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+
 def prepare_offer_data(offer: dict) -> dict:
     """
     Prépare et nettoie les données d'une offre d'emploi.
-    → Normalise chaque valeur str.
+    → Normalise chaque valeur str, sauf pour certains champs (ex: 'apply_url').
     → Convertit tout autre type (y compris None) en chaîne vide.
     """
+    skip_normalization = {"apply_url"}
+
     cleaned = {}
     for key, value in offer.items():
-        # si c'est une chaîne non vide, on la normalise
-        if isinstance(value, str) and value:
+        if key in skip_normalization:
+            # On garde la valeur brute
+            cleaned[key] = value if value else ""
+        elif isinstance(value, str) and value:
             cleaned[key] = text_normalization(value)
-        # sinon on met toujours une chaîne vide
         else:
             cleaned[key] = ""
     return cleaned

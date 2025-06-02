@@ -7,7 +7,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from jobs_api.utils import save_to_json, load_json_safely
 from config.logger import warning, info, error
-from extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
+from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
 
 # Définition des chemins
 PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "data/processed_data")

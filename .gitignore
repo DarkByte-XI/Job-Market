@@ -6,6 +6,7 @@ __pycache__
 !.gitignore
 !data/.gitkeep
 data/processed_data/*
+data/normalized/*
 data/raw_data/*
 tests/
 Todo.md

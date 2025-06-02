@@ -3,11 +3,13 @@ import json
 import glob
 from sklearn.metrics.pairwise import cosine_similarity
 from src.recommender.data_preparation import prepare_offer_data, text_normalization, vectorize_texts, transform_text
-from src.pipelines.extract import BASE_DIR
+from src.pipelines.transform import PROCESSED_DATA_DIR
+from pipelines.extract import BASE_DIR
 
-# Définition du chemin complet du dossier processed_data
-PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "data/processed_data")
 
+# Répertoire des offres normalisées
+NORMALIZED_OFFERS_DIR = os.path.join(BASE_DIR, "data/normalized")
+os.makedirs(NORMALIZED_OFFERS_DIR, exist_ok=True)
 
 def compute_similarity(query_vector, offer_vectors):
     """
@@ -56,9 +58,12 @@ def build_recommendation_engine_from_folder(folder_path: str,
     processed_offers = load_processed_offers(latest_file)
 
     combined_text_list = []
+    #normalized_offers = []
+
     for _offer in processed_offers:
         # Normalisation des données du fichier selon les règles de normalisation présentes dans data_preparation.py :
         data = prepare_offer_data(_offer)
+       # normalized_offers.append(data)
 
         # Combination des champs pour obtenir une sortie composé de toutes les informations :
         current_weight_description = weight_description if data["description"] else 0
@@ -70,7 +75,15 @@ def build_recommendation_engine_from_folder(folder_path: str,
         combined_text_list.append(combined_text)
 
     offers_vectorizer, processed_offer_vectors = vectorize_texts(combined_text_list)
-    return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list
+
+    # 4. Sauvegarde des offres normalisées
+    #output_filename = os.path.basename(f'{latest_file}_normalized')
+    #output_path = os.path.join(NORMALIZED_OFFERS_DIR, output_filename)
+
+    #with open(output_path, "w") as f:
+    #    json.dump(normalized_offers, f, indent=2, ensure_ascii=False)
+
+    return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list#, normalized_offers
 
 
 def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5,
@@ -106,7 +119,10 @@ if __name__ == "__main__":
 
     # Requête utilisateur
     user_query = input("Chercher un job par intitulé de poste : \n -> ")
-    recommendations = recommend_offers(user_query, vectorizer, offer_vectors, offers, top_n = 10)
+    recommendations = recommend_offers(user_input = user_query,
+                                       offers_vectorizer=vectorizer,
+                                       processed_offer_vectors = offer_vectors,
+                                       processed_offers = offers, top_n = 10)
 
     print("Offres recommandées :")
     for offer in recommendations:
