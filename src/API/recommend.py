@@ -9,7 +9,7 @@ from src.API.schemas.job import JobOfferResponse
 
 router = APIRouter()
 
-offers, vectorizer, offer_vectors, texts, offers_normalized = build_recommendation_engine_from_folder(PROCESSED_DATA_DIR)
+offers, vectorizer, offer_vectors, texts = build_recommendation_engine_from_folder(PROCESSED_DATA_DIR)
 
 @router.get("/search", response_model=List[JobOfferResponse])
 def search_offers(query: str = Query(..., description="Mot-clé recherché")):
