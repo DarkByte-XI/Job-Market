@@ -13,6 +13,18 @@ offers, vectorizer, offer_vectors, texts = build_recommendation_engine_from_fold
 
 @router.get("/search", response_model=List[JobOfferResponse])
 def search_offers(query: str = Query(..., description="Mot-clé recherché")):
+    """
+        Endpoint permettant de récupérer les offres d'emploi recommandées correspondant au mot-clé fourni.
+
+        - Filtre pour ne retourner que les offres avec `location` et `code_postal` renseignés.
+        - Les résultats sont triés par pertinence selon la similarité textuelle (TF-IDF + cosinus).
+
+        Args:
+            query (str): Mot-clé à rechercher.
+
+        Returns:
+            List[JobOfferResponse]: Liste des offres recommandées.
+        """
     try:
         recos = recommend_offers(user_input=query,
                                  offers_vectorizer=vectorizer,

@@ -1,7 +1,11 @@
+"""
+Routes FastAPI pour la récupération des entreprises distinctes.
+"""
+
 from fastapi import APIRouter
 from typing import List
-from src.pipelines.transform import PROCESSED_DATA_DIR
 from src.API.schemas.company import CompanyResponse
+from src.pipelines.transform import PROCESSED_DATA_DIR
 import os
 import json
 import glob
@@ -9,8 +13,17 @@ import hashlib
 
 router = APIRouter()
 
-@router.get("/companies", response_model=List[CompanyResponse])
+@router.get("/companies", response_model=List[CompanyResponse], summary="Liste des entreprises")
 def list_companies():
+    """
+    Endpoint permettant de récupérer la liste des entreprises présentes dans les offres d'emploi.
+
+    - Chaque entreprise a un identifiant unique (hash md5 de son nom).
+    - Les doublons et valeurs vides sont exclus.
+
+    Returns:
+        List[CompanyResponse]: Liste des entreprises uniques.
+    """
     # On charge le dernier fichier processed contenant les offres
     # Même logique que dans recommender.py pour trouver le dernier fichier
     pattern = os.path.join(PROCESSED_DATA_DIR, "transformed_*.json")

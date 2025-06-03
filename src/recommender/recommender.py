@@ -86,14 +86,23 @@ def build_recommendation_engine_from_folder(folder_path: str,
     return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list#, normalized_offers
 
 
-def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5,
-                     score_threshold: float = 0.7):
+def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5, score_threshold: float = 0.4):
     """
-    Donne des recommandations d'offres basées sur l'input utilisateur.
-    L'input est vectorisé et la similarité cosinus est calculée pour retourner
-    uniquement les offres dont le score est supérieur ou égal au seuil défini.
+    Génère une liste d'offres recommandées à partir d'une requête utilisateur.
 
-    Si moins d'offres répondent au critère, seules celles-là seront retournées.
+    - La requête est vectorisée (TF-IDF) et comparée à l'ensemble des offres via similarité cosinus.
+    - Seules les offres dépassant le seuil de similarité sont retenues, triées par score décroissant.
+
+    Args:
+        user_input (str): Mot-clé de recherche fourni par l'utilisateur.
+        offers_vectorizer: Objet vectorizer (TF-IDF) entraîné sur le corpus d'offres.
+        processed_offer_vectors: Matrice sparse des offres vectorisées.
+        processed_offers (list): Liste des dictionnaires d'offres.
+        top_n (int, optional): Nombre maximum d'offres à retourner. Défaut à 5.
+        score_threshold (float, optional): Seuil minimal de similarité cosinus pour considérer une offre.
+
+    Returns:
+        list: Liste des offres recommandées (dictionnaires).
     """
     # Pré-traiter l'input utilisateur
     user_input_normalized = text_normalization(user_input)

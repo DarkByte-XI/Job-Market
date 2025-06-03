@@ -11,7 +11,11 @@ Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de
 - [Présentation](#présentation)
 - [Architecture générale](#architecture-générale)
 - [Prérequis](#prérequis)
-- [Installation & lancement](#installation--lancement)
+- [Installation](#installation)
+- [Configuration et variables d'environnement (.env)](#configuration-et-variables-denvironnement-env)
+- [Création et initialisation de la base de données PostgreSQL](#création-et-initialisation-de-la-base-de-données-postgresql)
+- [Base de données SQL et triggers](#base-de-données-sql-et-triggers)
+- [Lancement](#lancement)
 - [Pipeline ETL](#pipeline-etl)
     - [1. Extraction](#1-extraction)
     - [2. Transformation et normalisation](#2-transformation-et-normalisation)
@@ -21,7 +25,6 @@ Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de
     - [Endpoints](#endpoints)
     - [Exemples d’utilisation](#exemples-dutilisation)
 - [Ressources et dictionnaires](#ressources-et-dictionnaires)
-- [Base de données SQL et triggers](#base-de-données-sql-et-triggers)
 - [Organisation des fichiers](#organisation-des-fichiers)
 - [Bonnes pratiques & sécurité](#bonnes-pratiques--sécurité)
 - [FAQ / Limitations](#faq--limitations)
@@ -53,26 +56,17 @@ Le système permet de consolider les offres, de les nettoyer, de générer des f
 ## Prérequis
 
 - Python 3.10 ou supérieur (recommandé)
-- **Packages** :  
-    - `fastapi`
-    - `uvicorn`
-    - `scikit-learn`
-    - `pydantic`
-    - `requests` (pour les scripts d’appel API)
-    - autres dans **requirements.txt**
-
-Installe toutes les dépendances nécessaires :
-```bash
-pip install -r requirements.txt
-```
+- PosgreSQL
+- requirements.txt
 
 ---
 
-## Installation & lancement
+
+## Installation
 
 1. Cloner le dépôt
 ```bash
-git clone <URL_DU_REPO>
+git clone <https://github.com/DarkByte-XI/Job-Market.git>
 cd Job_Market
 ```
 
@@ -88,9 +82,157 @@ source .venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 ```
 
-4. Exécutez le pipeline ETL pour générer les offres (voir section suivante).
+--- 
 
-5. Lancez l’API :
+
+## Configuration et variables d'environnement (.env)
+
+Pour sécuriser et centraliser la configuration sensible (identifiants d’API, clés secrètes, etc.), le projet utilise un fichier `.env` **non versionné**.
+
+- Un modèle de configuration est fourni :  
+  **`.env_copy`**  
+  > Ce fichier contient toutes les variables attendues, mais sans valeur (ou avec des valeurs d’exemple).
+Cette partie est importante pour initier les connexions avec les 
+API et se connecter à la base de données
+### Utilisation
+
+1. **Copie le modèle** dans ton dossier racine :
+    ```bash
+    cp .env_copy .env
+    ```
+
+2. **Complète** le fichier `.env` avec tes propres identifiants :
+    - Clés d’API pour France Travail, Adzuna, JSearch, etc.
+    - Chemins de fichiers, settings personnalisés…
+    - Exemple :
+        ```
+        # Identifiants API externes
+        FRANCE_TRAVAIL_API_KEY=
+        ADZUNA_APP_ID=
+        ADZUNA_APP_KEY=
+        JSEARCH_API_KEY=
+
+        # Autres configurations
+        LOG_LEVEL=INFO
+        ```
+
+3. **Ne partage jamais ton fichier `.env`**  
+   Il contient des informations confidentielles (identifiants personnels, tokens…).
+
+4. **Chargement automatique**  
+   Les variables sont chargées dans l’application via une librairie telle que [`python-dotenv`](https://github.com/theskumar/python-dotenv) ou manuellement dans le code de configuration.
+
+### Bonnes pratiques
+
+- Le fichier `.env` **est ignoré par git** grâce à `.gitignore`.
+- **Ne jamais commiter de clés réelles dans le repo !**
+- Tu peux enrichir le `.env_copy` si de nouvelles variables sont ajoutées au projet.
+
+
+---
+
+## Création et initialisation de la base de données PostgreSQL
+
+Pour activer l’audit, le reporting ou le stockage relationnel des offres, tu peux créer une base PostgreSQL dédiée.  
+Les scripts SQL fournis dans le dossier `sql/` permettent de recréer l’intégralité du modèle, des indexes, triggers et vues.
+
+### Étapes de création
+
+
+1. **Installe PostgreSQL**
+
+    - **Sur MacOS (recommandé) :**
+      ```bash
+      brew install postgresql
+      brew services start postgresql
+      ```
+      *(Si Homebrew n’est pas installé, voir [https://brew.sh/](https://brew.sh/))*
+
+    - **Sur Linux (Debian/Ubuntu) :**
+      ```bash
+      sudo apt update
+      sudo apt install postgresql postgresql-contrib
+      sudo service postgresql start
+      ```
+
+    - **Sur Windows :**
+      Télécharger l’installateur officiel :  
+      [https://www.postgresql.org/download/windows/](https://www.postgresql.org/download/windows/)
+
+2. **Crée une base dédiée** (depuis un terminal) :
+    ```bash
+    createdb job_market_db
+    ```
+
+Une fois la base créée, il faut indiquer à l’application comment s’y connecter.
+
+- Un fichier modèle de configuration est fourni :  
+  **`src/db/config_example.py`**
+
+- **À faire :**
+1. **Copier le fichier** et le renommer en `config.py` dans le même dossier :
+```bash
+        cp src/db/config_example.py src/db/config.py
+```
+
+2. **Compléter les informations de connexion** dans le dictionnaire Python :
+```python
+DB_CONFIG = {
+            "dbname": "job_market_db",
+            "user": "mon_user",
+            "password": "mon_password",
+            "host": "localhost",
+            "port": "5432"
+        }
+```
+
+3. **Ne jamais versionner ce fichier** (il est déjà listé dans `.gitignore`).
+
+- Ce fichier est utilisé par les scripts Python pour toute opération nécessitant un accès direct à la base PostgreSQL (insertion, requêtes, reporting, etc.).
+
+> Si vous utilisez un IDE comme Pycharm ou VSCode, vous pouvez dès lors exécuter les fichiers .sql
+> dans l'ordre (voir l'ordre dans [étape 4]()). Ensuite, vous pouvez passer directement à l'étape de [lancement](#lancement).
+> Sinon, suivez les instructions qui suivent
+
+
+3. **Connecte-toi à la base** :
+    ```bash
+    psql -d job_market_db
+    ```
+
+4. **Exécute les scripts SQL dans l’ordre suivant** (depuis `psql` ou avec un outil graphique) :
+    ```sql
+    \i sql/schema.sql
+    \i sql/indexes.sql
+    \i sql/triggers.sql
+    \i sql/views.sql
+    ```
+    - Tu peux aussi utiliser `psql` en ligne de commande :
+      ```bash
+      psql -d job_market_db -f sql/schema.sql
+      psql -d job_market_db -f sql/indexes.sql
+      psql -d job_market_db -f sql/triggers.sql
+      psql -d job_market_db -f sql/views.sql
+      ```
+
+5. **Vérifie la création des tables** :
+    ```sql
+    \dt
+    ```
+    - Tu dois voir apparaître les tables : `job_offers`, `companies`, `job_offers_log`, etc.
+
+---
+
+### Bonnes pratiques
+
+- Utilise un utilisateur PostgreSQL avec un mot de passe robuste.
+- Ne partage jamais ton accès en clair (cf. fichier `.env`).
+- Les scripts peuvent être relancés si tu veux réinitialiser la structure ou mettre à jour des index/triggers.
+
+
+## Lancement
+
+1. Lancez l’API :
 ```bash
 PYTHONPATH=src uvicorn API.main:app --reload
 ```
@@ -133,6 +275,8 @@ Par défaut, l’API fonctionne en mode "file-based" en lisant le dernier fichie
 - code_postal : Code postal.
 - salary_min, salary_max : Fourchettes salariales (float ou null).
 - apply_url : URL de candidature.
+
+---
 
 ## API FastAPI
 L’API démarre en important le moteur de recommandation (TF-IDF, similarité cosinus) qui vectorise toutes les offres au démarrage :
@@ -285,4 +429,4 @@ Job_Market/
 
 
 ## Auteurs
-Projet personnel développé et maintenu par [Dani CHMEIS & Enzo Petrelluzi].
+Projet personnel développé et maintenu par [Dani CHMEIS]() & [Enzo Petrelluzi]().
