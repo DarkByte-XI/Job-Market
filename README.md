@@ -1,164 +1,288 @@
-# Table des matières
+# Job Market
 
-- [Étape 1 : Récolte des données par API](#étape-1--récolte-des-données-par-API)
+Centralisation et recommandation d’offres d’emploi multicanal.
 
+Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de plusieurs sources externes (France Travail, Adzuna, JSearch) et à les exposer via une API de recherche/recommandation performante, utilisable en usage interne ou pour prototypage de projets data RH.
 
-# Projet Job Market
+---
 
-- Nous allons regrouper des informations sur les offres d’emplois récupérées par API, et les compagnies qui les proposent.
+## Sommaire
 
-- Notre objectif est d'analyser les offres liées aux métiers `Data Engineer` (DE), `Data Analyst` (DA) et `Data Scientist` (DS) :
-  - évolution de la répartition des offres de ces 3 métiers
-  - compétences les plus demandées (mots qui apparaissent le plus)
-  - secteurs recrutant le plus
-  - régions/villes les plus actives (avec carte de France de densité de recrutement)
-  - top 20 des entreprises qui recrutent le plus
-  - etc... (à compléter)
+- [Présentation](#présentation)
+- [Architecture générale](#architecture-générale)
+- [Prérequis](#prérequis)
+- [Installation & lancement](#installation--lancement)
+- [Pipeline ETL](#pipeline-etl)
+    - [1. Extraction](#1-extraction)
+    - [2. Transformation et normalisation](#2-transformation-et-normalisation)
+    - [3. Chargement (optionnel)](#3-chargement-optionnel)
+- [Structure des données](#structure-des-données)
+- [API FastAPI](#api-fastapi)
+    - [Endpoints](#endpoints)
+    - [Exemples d’utilisation](#exemples-dutilisation)
+- [Ressources et dictionnaires](#ressources-et-dictionnaires)
+- [Base de données SQL et triggers](#base-de-données-sql-et-triggers)
+- [Organisation des fichiers](#organisation-des-fichiers)
+- [Bonnes pratiques & sécurité](#bonnes-pratiques--sécurité)
+- [FAQ / Limitations](#faq--limitations)
+- [Auteurs](#auteurs)
 
+---
 
-## Étape 1 : Récolte des données par API
+## Présentation
 
-### API de "France Travail"
+**Job Market** est un projet interne de centralisation, d’analyse et de recommandation d’offres d’emploi issues de :
+- **France Travail** (anciennement Pôle Emploi)
+- **Adzuna** (API publique)
+- **JSearch** (agrégateur d’offres d’emploi, issu de RapidAPI)
 
-- France Travail (https://francetravail.io/data/api) met à disposition plusieurs APIs pour récolter diverses données.
+Le système permet de consolider les offres, de les nettoyer, de générer des fichiers d’offres enrichis, puis de proposer une API de recherche/recommandation rapide et fiable (FastAPI).
 
-- Nous utilisons l'API "Offres d'emploi" (`GET https://api.francetravail.io/partenaire/offresdemploi`) qui proposent plusieurs endpoints :
+---
 
-  - Le endpoint `GET https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search` nous permet de récupérer les offres d'emplois actuelles selon plusieurs paramètres dont :
-    - le code des appellations ROME, codes récupérés à partir du endpoint `GET https://api.francetravail.io/partenaire/offresdemploi/v2/referentiel/appellations`
+## Architecture générale
 
-      ```json
-      { "code": "38971",  "libelle": "Data analyst" },
-      { "code": "38972",  "libelle": "Data scientist" },
-      { "code": "404278", "libelle": "Data engineer" },
-      ...
-      ```
+- **ETL Python** : Extraction, transformation et normalisation des offres multi-sources
+- **Stockage** : Fichiers JSON dans `data/processed_data`
+- **API** : Recherche et recommandation des offres via FastAPI (`/search`, `/companies`)
+- **Ressources** : Dictionnaires métiers, pays, appellations, mots-clés pour enrichissement & recherche
+- **SQL** : Scripts pour modéliser une base d’audit/offre, suivi de disponibilité via triggers, indexes optimisés
 
-    - le code des pays, codes récupérés à partir du endpoint `GET https://api.francetravail.io/partenaire/offresdemploi/v2/referentiel/pays`
+---
 
-      ```json
-      { "code": "01", "libelle": "France" },    // inclut les offres en France d'outre-mer
-      { "code": "02", "libelle": "Allemagne" }, // les pays étrangers ne retournent malheureusement pas d'offres sur les métiers à analyser
-      ...
-      ```
+## Prérequis
 
-    - le paramètre `range` qui limite les résultats à 150 offres par requête (status code `206` si une requête renvoie plus de 150 offres), sachant que le nombre d'offres maximum récupérables est de 3150 offres.
-      - Ainsi, si une requête peut renvoyer 351 offres, il faut enchainer 3 requêtes pour obtenir toutes les offres :
-        - une première requête pour les offres `0-149` (status code 206),
-        - une deuxième requête pour les offres `150-299` (status code 206),
-        - une troisième requête pour les offres `300-350` (status code 200)
+- Python 3.10 ou supérieur (recommandé)
+- **Packages** :  
+    - `fastapi`
+    - `uvicorn`
+    - `scikit-learn`
+    - `pydantic`
+    - `requests` (pour les scripts d’appel API)
+    - autres dans **requirements.txt**
 
-    - note : les paramètres liés aux dates (`minCreationDate`, `maxCreationDate`, `publieeDepuis`) ne permettent pas d'obtenir des offres expirées (celles qui ont permis de recruter quelqu'un).
-
-
-- Cet API nous retourne des offres sous forme de documents json avec beaucoup d'informations dont l'identifiant de l'offre, son intitulé, sa description, le lieu de travail, des informations sur l'entreprise et sur le contrat, les compétences demandées et l'expérience nécessaires, etc...
-
-- Toutefois, l'API retourne aussi énormément d'offres sans lien avec le métier renseigné en paramètre (par exemple, une requête renseignant l'appellation "Data Engineer" peut renvoyer une offre telle que "Product Owner" car les termes "Data Engineer" peuvent être présents dans la description de l'offre d'emploi).
-
-- Nous requêtons ainsi un maximum d'appellations ROME en utilisant les 29 appellations ayant un lien avec la data, ainsi que 32 autres appellations ayant un lien avec les métiers de la tech (dev, sécurité, devops), pour maximiser les chances d'obtenir le plus d'offres d'emploi ayant un lien avec les métiers DE, DA et DS.
-
-  - En effet, des offres de "Data Engineer" peuvent être présentes en requêtant l'appellation "Data_Manager" par exemple.
-
-- Nous obtenons finalement 61 fichiers json contenant toutes les offres d'emploi liés ou pas à la data, pour la France et DOM-TOM uniquement car France Travail ne renvoie quasiment pas d'offre d'emploi teintée data pour les autres pays.
-
-  - Ces 61 fichiers json seront fusionnés dans un seul fichier json, avec nous supprimons les doublons. Ce fichier json sera notre jeu de données pour l'API de France Travail.
-
-
-- Nous filtrerons toutes les offres à la prochaine étape.
-
-- On notera que les offres d"emploi retournées peuvent provenir soit de France Travail, soit des "partenaires", par exemple ("CADREMPLOI', "DIRECTEMPLOI", "INDEED", etc...)
-
-  <!-- - En effet, pour filtrer les offres de "Data Engineer", nous testons si l'intitulé d'une offre matche avec plusieurs regex définies dans le fichier `filtres_offres.yml`, et aussi si elle ne matche pas d'autres regex aussi présente dans le même fichier.
-
-    - Par exemple, pour filtrer les offres DE, pour chaque offre, la chaîne de caractère d'un intitulé est mis en miniscule et les accents retirés, et nous gardons l'offre si l'intitulé matche la regex `(ing|eng)(.*?)(data|donnee)`, et si l'intitulé ne matche pas `scientist`.
-        - Une offre dont l'intitulé est `Inginieur de donnees` sera vu comme une offre DE, malgré la typo involontaire du recruteur et déjà rencontré.
-        - Une offre dont l'intitulé est `Ingénieur Data Scientist` ne sera pas vu comme une offre DE, car c'est en réalité une offre DS. -->
-
-
-
-
-### API de "The Muse"
-
-L'API `GET https://www.themuse.com/api/public/jobs` permet de récupérer les offres d'emploi sur 3 critères principales :
-  - la catégorie du métier ("category")
-    - par exemple : "Data and Analytics", "Data Science"
-  - le niveau d'expérience requis pour l'offre ("level")
-    - par exemple : "Entry Level", "Mid Level", "Senior Level"
-  - la localisation ("location")
-    - par exemple "Paris, France"
-    - il y a près de 21 000 villes proposés, dont 409 villes françaises, que nous devons sélectionner pour la requête (ce qui fait une requête énorme)
-
-Parmi les résultats, les offres de télétravail sont présentes (on veut les retirer ? sûrement oui).
-
-Une requête donne au maximum 20 offres, nous faisons donc une requête initiale pour voir combien de requêtes sont nécessaires pour récupérer toutes les offres (clé "page_count" de la réponse).
-
-
-
-
-### API "Adzuna"
-
-Adzuna est une plateforme de recherche d'emploi qui propose une API permettant d'accéder à une large base de données d'annonces d'emploi à travers différents pays. Dans ce projet, l'API Adzuna est utilisée pour effectuer des recherches d'annonces d'emploi en fonction de critères spécifiques tels que des mots-clés, un lieu géographique, et des exclusions (ex. "freelance", "stagiaire", etc.). L'API prend également en charge la pagination pour récupérer plusieurs pages de résultats.
-
-### Configuration
-Pour utiliser l'API Adzuna, les informations suivantes sont nécessaires :
-- **App ID** et **App Key** : Ces identifiants doivent être obtenus en s'inscrivant sur le [portail développeur d'Adzuna](https://developer.adzuna.com/).
-- **Pays pris en charge** : Les recherches peuvent être effectuées par pays via leur code ISO 3166 (ex : `fr` pour la France, DOM-TOM inclus, `us` pour les États-Unis).
-Voir la liste des pays disponibles dans le paramètre [country](https://developer.adzuna.com/activedocs#!/adzuna/search)
-
-### Fonctionnalités implémentées
-- **Recherche personnalisée** : Récupération d'annonces selon des critères définis (mots-clés, exclusions, etc.).
-- **Pagination** : Extraction automatique des annonces sur plusieurs pages.
-- **Enregistrement JSON** : Les résultats sont sauvegardés sous forme de fichiers JSON et incluent le nombre total d'annonces par fichier.
-  - Chaque fichier de sortie correspond au nom de la requête et est enregistré sous le format ***jobs_{query}***. Pour une requête de recherche d'offre d'emploi en tant que consultant digital par exemple,
-le fichier généré est ***jobs_consultant_digital.json***
-  - Un fichier de consolidation contient toutes les offres d'emploi uniques si plusieurs requêtes sont utilisées, intitulé ***all_jobs_results.json***
-  - Les requêtes avec en sortie aucun résultat sont enregistrées dans un fichier intitulé ***no_results_queries.json***. Une fonction est intégrée également pour retirer les termes 
-  sans résultat de fichier des requêtes principales, ici ***job_keywords.json*** pour réduire les appels inutiles.
-- **Inclusions & Exclusions** : L'API permet de réaliser des requêtes avec plusieurs termes recherchés et d'autres exclus pour affiner les résultats fournis à partir du
-fichier ***job_keywords.json***.
-
-
-### Exemple de critères de recherche :
-
-```json
-{
-  "country": "fr",
-  "query": "Data Engineer",
-  "what_exclude": "freelance stagiaire stage alternance",
-  "results_per_page": 50
-}
+Installe toutes les dépendances nécessaires :
+```bash
+pip install -r requirements.txt
 ```
 
-#### **Attention** : Les requêtes et les exclusions sont gérées à partir du fichier intitulé ***job_keywords.json***. 
-Le code a été mis à jour pour prendre en compte ces critères à partir du fichier directement.
-Les clés ***"query"*** et ***"what_exclude"*** dans le bloc ci-dessus permettent de vulgariser le mode de fonctionnement.
-Les exclusions sont bien séparées par un **espace**.
+---
 
-### Exemple de sortie du fichier combiné: 
+## Installation & lancement
 
-```json
-"total_count": 15720,
-    "jobs": [
-        {
-            "id": "5003327854",
-            "title": "Data Architect H/F",
-            "company": "Limagrain",
-            "location": "Pont-du-Château, Clermont-Ferrand",
-            "location_area": [
-                "France",
-                "Auvergne-Rhône-Alpes",
-                "Puy-de-Dôme",
-                "Clermont-Ferrand",
-                "Pont-du-Château"
-            ],
-            "description": "En tant qu'Architecte Data, vous préconisez les solutions techniques à mettre en oeuvre dans les projets nécessitant la collecte, le stockage ou l'utilisation de données. Vous intervenez sur de nombreux projets et mettez en place des solutions génériques pour faciliter le travail des équipes de développeurs. Les solutions préconisées permettent le suivi opérationnel et financier. En tant que Data Architect, vous serez en charge de : L'architecture Data : - Vous préconisez des solutions techniqu…",
-            "salary_min": null,
-            "salary_max": null,
-            "redirect_url": "https://www.adzuna.fr/land/ad/5003327854?se=tOTtLOLS7xGXDUlWOH7jYQ&utm_medium=api&utm_source=32ef67cb&v=B994F4E8C765CCD3A51365F570BF71BDD41A2EFD",
-            "longitude": 3.22038,
-            "latitude": 45.86958,
-            "field": "Unknown"
-        }
-
-[...]
+1. Cloner le dépôt
+```bash
+git clone <URL_DU_REPO>
+cd Job_Market
 ```
+
+2. Créez et activez un environnement virtuel :
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+.venv\Scripts\activate     # Windows
+```
+
+3. Installez les dépendances :
+```bash
+pip install -r requirements.txt
+```
+
+4. Exécutez le pipeline ETL pour générer les offres (voir section suivante).
+
+5. Lancez l’API :
+```bash
+PYTHONPATH=src uvicorn API.main:app --reload
+```
+Accédez à la documentation interactive : http://localhost:8000/docs.
+
+---
+
+## Pipeline ETL
+
+### 1. Extraction
+Les scripts dans src/jobs_api/ extraient les offres depuis :
+- France Travail : france_travail_api.py
+- Adzuna : adzuna_api.py
+- JSearch : jsearch_api.py
+
+
+### 2. Transformation et normalisation
+Les modules dans src/pipelines/ (extract.py, transform.py, load.py) :
+- Extrait les données des différentes API
+- Nettoient les données (accents, minuscules, etc.) via src/recommender/data_preparation.py ainsi que
+via src/pipelines/transform.py pour le chargement en base de données.
+
+### 3. Chargement (optionnel)
+Les offres sont insérées dans une base SQL (voir section "Base de données SQL").
+Par défaut, l’API fonctionne en mode "file-based" en lisant le dernier fichier JSON dans data/processed_data.
+
+---
+
+## Structure des données
+### Fichiers principaux
+- data/processed_data/transformed_*.json : Offres prêtes pour l’API.
+- data/normalized/ : Données normalisées pour audit (optionnel). Cette option documentée dans src/recommender/recommender.py
+
+### Champs des offres
+- external_id : Identifiant unique (source externe).
+- title : Intitulé du poste.
+- company : Nom de l’entreprise.
+- description : Description de l'offre si disponible
+- location : Ville.
+- code_postal : Code postal.
+- salary_min, salary_max : Fourchettes salariales (float ou null).
+- apply_url : URL de candidature.
+
+## API FastAPI
+L’API démarre en important le moteur de recommandation (TF-IDF, similarité cosinus) qui vectorise toutes les offres au démarrage :
+**Aucune latence liée au chargement des fichiers à chaque requête.**
+
+### Endpoints
+#### 1. /search
+Recherche d’offres d’emploi recommandées à partir d’une requête utilisateur.
+
+**Requête** :
+```bash
+GET /search?query=data%20engineer
+```
+
+**Réponse** : liste d’offres structurées
+
+```bash
+[
+  {
+    "external_id": "5121612668",
+    "title": "data engineer hf en alternance",
+    "company": "openclassrooms",
+    "location": "annecy",
+    "code_postal": "74000",
+    "salary_min": null,
+    "salary_max": null,
+    "url": "https://www.adzuna.fr/land/ad/5121612668?..."
+  }
+]
+```
+**Filtrage** : seules les offres avec un location et un code_postal sont retournées.
+
+#### 2. /companies
+Liste des entreprises distinctes extraites des offres.
+
+**Requête**:
+#### GET /companies
+
+**Réponse** : liste d’entreprises
+```bash
+[
+  {
+    "id": "a9f5bb1c9c6e0e9b...",
+    "name": "openclassrooms"
+  }
+]
+```
+
+L’id est un hash du nom (md5), le nom est unique.
+
+### Exemples d’utilisation
+#### - Recherche avancée : 
+```bash
+GET /search?query=product%20owner%20bordeaux
+```
+#### - Liste des entreprises : 
+```bash
+GET /companies
+```
+
+---
+
+## Ressources et dictionnaires
+### Dossier ressources/ :
+- **appellations_code.json** : Codes métiers France Travail. 
+- **data_appellations.json** : Appariement codes/intitulés pour métiers "data". 
+- **job_keywords.json** : Mots-clés pour recherches Adzuna/JSearch. 
+- **code_pays.json, communes_cp.csv** : Enrichissement des localisations.
+
+---
+
+
+## Base de données SQL et triggers
+### Dossier sql/ :
+- **schema.sql** : Modèle relationnel (tables offres, logs, etc.). 
+- **indexes.sql** : Index pour optimiser les requêtes/jointures. 
+- **triggers.sql** :
+  - log_job_offers_changes() pour tracer les opérations (insert/update/delete) et vérifier la disponibilité des offres. 
+- **views.sql** : Vues matérialisées pour analyses/reporting.
+
+**Note** : La base SQL est optionnelle pour l’API, mais utile pour audit/traçabilité.
+
+---
+
+## Organisation des fichiers
+
+```bash
+Job_Market/
+├── data/
+│   ├── processed_data/
+│   ├── normalized/
+├── logs/
+│   └── job_market.log
+├── ressources/
+├── src/
+│   ├── API/
+│   │   ├── schemas/
+│   │   │   ├── job.py
+│   │   │   ├── company.py
+│   │   └── main.py
+│   │   └── recommend.py
+│   │   └── companies.py
+│   ├── config/
+│   │   ├── config_loader.py
+│   │   ├── logger.py
+│   ├── db/
+│   │   ├── config.py
+│   │   ├── db_connection.py
+│   ├── jobs_api/
+│   │   ├── adzuna_api.py
+│   │   ├── france_travail.py
+│   │   ├── jsearch_api.py
+│   │   ├── utils.py
+│   ├── pipelines/
+│   │   ├── extract.py
+│   │   ├── transform.py
+│   │   ├── load.py
+│   ├── recommender/
+│   │   ├── data_preparation.py
+│   │   ├── loader.py
+│   │   ├── recommender.py
+├── sql/
+│       ├── indexes.sql
+│       ├── schema.sql
+│       ├── triggers.sql
+│       ├── views.sql
+├── .gitignore
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## Bonnes pratiques & sécurité
+- Fichiers sensibles (clés, .env, logs) ignorés via .gitignore. 
+- Dossiers de données ignorés sauf si .gitkeep est présent. 
+- API 100% file-based, sans dépendance SQL, adaptée au prototypage. 
+- Logs disponibles dans logs/job_market.log.
+
+---
+
+
+## FAQ / Limitations
+- **Mise à jour des offres** : Non dynamique. Redémarrez l’API ou ajoutez un endpoint /reload. 
+- **Scalabilité** : Adapté pour des datasets raisonnables (jusqu’à ~100k offres en RAM). 
+- **Authentification** : Non implémentée (usage interne). Ajoutez un middleware si nécessaire. 
+- **Recommandation** : Basée sur TF-IDF/similarité cosinus, sans IA avancée (embeddings).
+
+---
+
+
+## Auteurs
+Projet personnel développé et maintenu par [Dani CHMEIS & Enzo Petrelluzi].
