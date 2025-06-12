@@ -151,7 +151,7 @@ def extract_salary_france_travail(salary_text):
     :return: Tuple (salary_min, salary_max) ou (None, None) si aucune valeur trouvée.
     """
 
-    if not salary_text or any(term in salary_text.lower() for term in ["", "à négocier", "selon profil"]):
+    if not salary_text or any(term in salary_text.lower() for term in ["négocier", "profil", "autre"]):
         return None, None
 
     # 1) Retirer "sur 12 mois" (ou variante sur 12.0 mois) pour ne garder que la partie avant
