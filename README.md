@@ -365,6 +365,7 @@ GET /companies
 
 ```bash
 Job_Market/
+├── app.py # Streamlit app
 ├── data/
 │   ├── processed_data/
 │   ├── normalized/
