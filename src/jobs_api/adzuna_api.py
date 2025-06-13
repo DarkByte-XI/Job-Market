@@ -28,7 +28,7 @@ def fetch_jobs_from_adzuna(criteria):
         params = {
             "app_id": ADZUNA_APP_ID,
             "app_key": ADZUNA_APP_KEY,
-            "what_phrase": criteria["query"],
+            "title_only": criteria["query"],
             "results_per_page": criteria["results_per_page"]
         }
 

@@ -1,34 +1,15 @@
 import json
-import os
 import datetime
 from db.db_connection import connect_db
-from config.logger import info, warning, error, critical  # Import des fonctions de log
+from config.logger import info, warning, critical
 from pipelines.transform import PROCESSED_DATA_DIR
-
-
-
-def get_latest_file(directory):
-    """
-    Récupère le fichier JSON le plus récent dans le répertoire spécifié.
-    """
-    try:
-        files = [f for f in os.listdir(directory) if f.endswith(".json")]
-        if not files:
-            warning("Aucun fichier trouvé dans le dossier de transformation.")
-            return None
-
-        latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(directory, f)))
-        return os.path.join(directory, latest_file)
-
-    except Exception as e:
-        error("Erreur lors de la recherche du fichier : {}".format(e))
-        return None
-
+from jobs_api.utils import get_latest_file
 
 
 def insert_source(cur, source_name):
     """Insère une source et retourne son ID.
     Si le nom est manquant ou vide, l'offre sera ignorée (retourne None)."""
+
     if not source_name or source_name.strip() == "":
         warning("Nom de la source manquant, offre ignorée.")
         return None
@@ -174,15 +155,16 @@ def process_job(job):
 
                 # Upsert dans job_offers
                 cur.execute("""
-                    INSERT INTO job_offers (source_id, external_id, company_id, location_id, salary_min, salary_max, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO job_offers (source_id, external_id, company_id, location_id, salary_min, salary_max, created_at, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
                     ON CONFLICT (external_id, source_id)
                     DO UPDATE SET 
                         company_id = EXCLUDED.company_id,
                         location_id = EXCLUDED.location_id,
                         salary_min = EXCLUDED.salary_min,
                         salary_max = EXCLUDED.salary_max,
-                        created_at = EXCLUDED.created_at
+                        created_at = EXCLUDED.created_at,
+                        status = 'active'
                     RETURNING job_id;
                 """, job_data)
                 job_id = cur.fetchone()[0]
@@ -231,6 +213,42 @@ def load_jobs_multithreaded(jobs, max_threads):
 
 
 
+def mark_missing_offers_inactive():
+    """
+    Passe en inactive toutes les offres actives dont l'external_id
+    n'apparaît plus dans le dernier fichier transformé.
+    """
+    # 1) Récupère le dernier JSON
+    latest_path = get_latest_file(PROCESSED_DATA_DIR)
+    if not latest_path:
+        return
+
+    # 2) Compose la liste des IDs importés
+    with open(latest_path, "r", encoding="utf-8") as f:
+        jobs = json.load(f)
+    imported_ids = [job["external_id"] for job in jobs]
+    if not imported_ids:
+        return
+
+    # 3) Exécute l'UPDATE en se servant de ANY() sur un tableau de texte
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE job_offers
+                   SET status = 'inactive'
+                 WHERE status = 'active'
+                   -- ici on teste que external_id n'est PAS dans le tableau :
+                   AND NOT (external_id::text = ANY(%s::text[]));
+            """, (imported_ids,))
+        conn.commit()
+        info(f"{cur.rowcount} offres marquées inactive.")
+    finally:
+        conn.close()
+
+
+
+
 def load_jobs_to_db():
     """Charge les offres du dernier fichier transformé et les insère en base de données en parallèle."""
     file_path = get_latest_file(PROCESSED_DATA_DIR)
@@ -256,5 +274,7 @@ def load_jobs_to_db():
         critical("Erreur générale : {}".format(e))
 
 
+
 if __name__ == "__main__":
     load_jobs_to_db()
+    mark_missing_offers_inactive()

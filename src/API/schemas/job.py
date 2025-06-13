@@ -12,6 +12,7 @@ class JobOfferResponse(BaseModel):
     external_id: str
     title: str
     company: str
+    description: str
     location: str
     code_postal: Optional[str] = None
     salary_min: Optional[float] = None

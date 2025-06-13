@@ -2,38 +2,66 @@ import os
 import json
 import re
 import unicodedata
+from typing import List, Dict, Any
 import pandas as pd
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from jobs_api.utils import save_to_json, load_json_safely
 from config.logger import warning, info, error
 from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
+from jobs_api.utils import get_latest_file
+
 
 # Définition des chemins
 PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "data/processed_data")
 INSEE_FILE = os.path.join(RESSOURCES_DIR, "communes_cp.csv")
 
 
+
 def normalize_text(text):
-    """Normalise le texte en supprimant les accents, en mettant en majuscules et en gérant certaines transformations spécifiques."""
-    if not text or not isinstance(text, str):  # Vérification pour éviter les erreurs
+    """
+    Normalise le texte en supprimant les accents, en mettant en majuscules
+    et en gérant certaines transformations spécifiques :
+      - tirets/apostrophes → espaces
+      - espaces multiples → un seul
+      - SAINT → ST
+      - arrondissements ou "<Ville> <n>" → "VILLE NN" (zéro-pad)
+    """
+    if not text or not isinstance(text, str):
         return None
 
-    text = unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("utf-8")
-    text = re.sub(r"[-']", " ", text)  # Remplace les tirets et apostrophes par des espaces
-    text = re.sub(r"\s+", " ", text).strip()  # Supprime les espaces multiples
+    # Unicode → ASCII, uppercase
+    s = unicodedata.normalize("NFD", text) \
+                     .encode("ascii", "ignore") \
+                     .decode("utf-8") \
+                     .upper()
 
-    # Transformer "SAINT" en "ST"
-    text = re.sub(r"\bSAINT\b", "ST", text)
+    # Tirets/apostrophes → espaces, condense espaces
+    s = re.sub(r"[-']", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
 
-    # Inversion des arrondissements (ex: "9ème Arrondissement, Paris" → "PARIS 9")
-    match = re.search(r"(\d+)[eè]m[eè]?\s*Arrondissement,?\s*(\w+)", text, re.IGNORECASE)
-    if match:
-        arrondissement = match.group(1)
-        ville = match.group(2)
-        text = f"{ville} {arrondissement}"
+    # SAINT → ST
+    s = re.sub(r"\bSAINT\b", "ST", s)
 
-    return text.upper()
+    # Arrondissements explicites : "9E ARRONDISSEMENT, PARIS" → "PARIS 09"
+    m = re.search(
+        r"(\d{1,2})[EÈ]M[EÈ]?\s*ARRONDISSEMENT,?\s*(\w+)",
+        s,
+        re.IGNORECASE
+    )
+    if m:
+        num   = m.group(1).zfill(2)
+        ville = m.group(2).upper()
+        return f"{ville} {num}"
+
+    # "<Ville> <n>" en fin de chaîne : "PARIS 8" ou "PARIS 08"
+    m2 = re.search(r"^(?P<ville>.+?)\s+(?P<num>\d{1,2})$", s)
+    if m2:
+        ville = m2.group("ville").strip()
+        num   = m2.group("num").zfill(2)
+        return f"{ville} {num}"
+
+    return s
 
 
 communes_dict = {}  # Dictionnaire pour correspondance `Code_postal` → `Libellé_d_acheminement`
@@ -90,36 +118,43 @@ def harmonize_company_name(company_name):
 
 def match_commune_insee(commune):
     """
-    Recherche le code postal à partir de `Libellé_d_acheminement` ou `Nom_de_la_commune` dans le fichier INSEE.
-    - Si `use_nom_commune=True`, on cherche dans `Nom_de_la_commune` (cas des arrondissements).
-    - Sinon, on cherche dans `Libellé_d_acheminement`.
-    - Si un arrondissement est détecté, la recherche se fait sur `Nom_de_la_commune`.
+    Recherche le code postal à partir d'un nom de commune ou d'un arrondissement.
+    1) Normalise en "VILLE NN".
+    2) Cherche dans communes_nom_dict.
+    3) Cherche dans communes_dict.
+    4) Si le key est une ville sans arrondissement (ex: "PARIS"), on prend le premier
+       arrondissement trouvé ("PARIS 01") et renvoie son code postal.
     """
-    if not commune or not isinstance(commune, str) or commune.strip() == "":
-        return None  # Assure que la fonction retourne toujours une valeur
+    if not commune or not isinstance(commune, str) or not commune.strip():
+        return None
 
-    commune_normalize = normalize_text(commune)
+    key = normalize_text(commune)
+    if not key:
+        return None
 
-    # Vérifier si l'entrée contient un arrondissement (ex: "PARIS 9", "LYON 3", etc.)
-    match_arrondissement = re.search(r"(\d+)[eè]m[eè]?\s*Arrondissement,?\s*(\w+)", commune, re.IGNORECASE)
+    # 1) Nom_de_la_commune exact
+    cp = communes_nom_dict.get(key)
+    if cp:
+        return cp
 
-    if match_arrondissement:
-        arrondissement = match_arrondissement.group(1)  # Ex: "9"
-        ville = match_arrondissement.group(2)  # Ex: "Paris"
-        full_key = f"{ville} {arrondissement}".upper()  # Ex: "PARIS 9"
+    # 2) Libellé_d_acheminement exact
+    cp = communes_dict.get(key)
+    if cp:
+        return cp
 
-        # Recherche d'abord avec `Nom_de_la_commune`
-        matched_cp = communes_nom_dict.get(full_key)
-        if matched_cp:
-            return matched_cp
+    # 3) Fallback pour ville seule, retourne le 1er arrondissement
+    #    ex: key == "PARIS" ou "LYON"
+    candidates = [
+        (k, v)
+        for k, v in communes_nom_dict.items()
+        if k.startswith(f"{key} ")
+    ]
+    if candidates:
+        # Trie lexicographique => "PARIS 01" avant "PARIS 02"
+        candidates.sort(key=lambda x: x[0])
+        return candidates[0][1]
 
-    # Recherche alternative avec `Libellé_d_acheminement`
-    matched_cp = next((cp for cp, lib in communes_dict.items() if lib == commune_normalize), None)
-    if matched_cp:
-        return matched_cp
-
-    # Dernier recours : essayer `Nom_de_la_commune` directement (sans arrondissement)
-    return communes_nom_dict.get(commune_normalize, None)
+    return None
 
 
 def clean_description(text):
@@ -500,28 +535,35 @@ TRANSFORMATION_FUNCTIONS = {
 }
 
 
-def process_source_files(source, source_dir):
-    """Charge et transforme les fichiers JSON d'une source en parallèle."""
+def process_source_files(source: str, source_dir: str) -> List[Dict[str, Any]]:
+    """
+    Charge et transforme **uniquement** le dernier fichier JSON d'une source,
+    en parallèle sur chaque offre.
+
+    :param source: Clé pour choisir la bonne fonction de transformation
+    :param source_dir: Répertoire contenant les fichiers JSON de la source
+    :return: Liste d'offres transformées
+    """
     if not os.path.exists(source_dir):
         warning(f"Dossier source introuvable pour {source}")
         return []
 
-    file_paths = [
-    os.path.join(source_dir, f)
-    for f in os.listdir(source_dir)
-    if f.lower().endswith('.json')
-]
+    # Récupère le chemin du fichier le plus récent
+    latest_path = get_latest_file(source_dir)
+    if latest_path is None:
+        return []
 
+    # Charge les données brutes
+    data = load_json_safely(latest_path) or []
 
-    def process_file(file_path):
-        data = load_json_safely(file_path)
-        return [TRANSFORMATION_FUNCTIONS[source](job) for job in data] if data else []
-
+    # Transforme chaque offre en parallèle
     with ThreadPoolExecutor() as executor:
-        results = executor.map(process_file, file_paths)
+        transformed_jobs = list(
+            executor.map(TRANSFORMATION_FUNCTIONS[source], data)
+        )
 
-    transformed_jobs = [job for sublist in results for job in sublist]
-    info(f"{len(transformed_jobs)} offres transformées pour {source}")
+    info(f"{len(transformed_jobs)} offres transformées pour {source} "
+         f"(fichier: {os.path.basename(latest_path)})")
     return transformed_jobs
 
 
@@ -537,53 +579,89 @@ def deduplicate_jobs(jobs):
     return list(unique_jobs.values())
 
 
+
 def deduplicate_after_merge(jobs):
     """
-    Supprime les doublons après fusion des sources, en se basant sur `title` et 'company'.
+    Supprime les doublons après fusion des sources, en se basant sur `title` et `company`,
+    tout en donnant la priorité aux offres issues de France Travail (source="France Travail")
+    ou, à défaut, à celles qui contiennent des informations de salaire lorsque disponibles.
     """
     unique_jobs = {}
     for job in jobs:
-        # Normaliser le titre (on le met en minuscule pour la comparaison)
+        # Clé de déduplication : (titre normalisé, entreprise harmonisée)
         title_key = job.get("title", "").strip().lower()
-        # Harmoniser le nom de l'entreprise
         company_key = harmonize_company_name(job.get("company"))
         key = (title_key, company_key)
+
         if key not in unique_jobs:
             unique_jobs[key] = job
+            continue
+
+        existing = unique_jobs[key]
+
+        # Si la nouvelle offre est de France Travail et que l'existante ne l'est pas → on remplace
+        # France travail possède des données plus riches, notamment en termes de salaires et descriptions.
+        if job.get("source") == "France Travail" and existing.get("source") != "France Travail":
+            unique_jobs[key] = job
+            continue
+
+        # Sinon, si l'existante n'a pas de salaire et que la nouvelle en a un → on remplace
+        existing_has_salary = existing.get("salary_min") not in (None, "", 0)
+        new_has_salary = job.get("salary_min") not in (None, "", 0)
+        if not existing_has_salary and new_has_salary:
+            unique_jobs[key] = job
+            continue
+
+        # Dans tous les autres cas, on conserve l'offre déjà présente
     return list(unique_jobs.values())
 
 
 
 def transform_jobs():
-    """Orchestration du traitement des offres d'emploi avec optimisation et logs détaillés."""
+    """
+    Orchestration du traitement des offres d'emploi :
+    - Charge uniquement le dernier fichier JSON de chaque source.
+    - Transforme chaque offre en parallèle via ThreadPoolExecutor.
+    - Applique déduplication intra et inter-sources.
+    - Sauvegarde le résultat final.
+    """
     all_transformed_jobs = []
 
     # Vérifier si le dictionnaire INSEE est bien chargé
     if not communes_dict:
-        warning("Attention : Le fichier INSEE est absent ou mal chargé. Les correspondances de code postal peuvent être incomplètes.")
+        warning(
+            "Attention : Le fichier INSEE est absent ou mal chargé. "
+            "Les correspondances de code postal peuvent être incomplètes."
+        )
 
     for source in TRANSFORMATION_FUNCTIONS:
         source_dir = os.path.join(RAW_DATA_DIR, source, "output")
 
-        # Chargement et transformation des fichiers en parallèle
+        # Chargement du dernier fichier et transformation des offres en parallèle
         transformed_jobs = process_source_files(source, source_dir)
 
         # Déduplication intra-source
         unique_jobs = deduplicate_jobs(transformed_jobs)
-        info(f"Déduplication intra-source terminée pour {source}, {len(unique_jobs)} offres uniques.")
+        info(
+            f"Déduplication intra-source terminée pour {source}, "
+            f"{len(unique_jobs)} offres uniques."
+        )
 
         all_transformed_jobs.extend(unique_jobs)
 
     # Déduplication inter-sources après fusion
     final_jobs = deduplicate_after_merge(all_transformed_jobs)
-    info(f"Déduplication inter-sources appliquée, {len(final_jobs)} offres finales.")
+    info(
+        f"Déduplication inter-sources appliquée, "
+        f"{len(final_jobs)} offres finales."
+    )
 
     # Sauvegarde des offres transformées
     try:
         if final_jobs:
-            save_to_json(final_jobs, directory = PROCESSED_DATA_DIR,
-                         source = "transformed")
+            save_to_json(final_jobs, directory=PROCESSED_DATA_DIR, source="transformed")
             info(f"Transformation terminée : {len(final_jobs)} offres sauvegardées.")
+
     except Exception as exception:
         error(f"Le fichier transformé n'a pas été sauvegardé - {exception}")
 

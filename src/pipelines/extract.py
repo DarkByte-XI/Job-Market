@@ -15,7 +15,7 @@ RESSOURCES_DIR = os.path.join(BASE_DIR, "ressources")
 os.makedirs(RESSOURCES_DIR, exist_ok=True)
 
 JOB_KEYWORDS_FILE = os.path.join(RESSOURCES_DIR, "job_keywords.json")
-APPELLATIONS_FILE = os.path.join(RESSOURCES_DIR, "data_appellations.json")
+APPELLATIONS_FILE = os.path.join(RESSOURCES_DIR, "appellations_hightech.json")
 
 # Chemin vers le répértoire de sauvegarde
 RAW_DATA_DIR = os.path.join(BASE_DIR, "data/raw_data")

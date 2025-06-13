@@ -124,3 +124,22 @@ def load_json_safely(file_path):
     except (FileNotFoundError, json.JSONDecodeError) as e:
         error(f"Erreur lors de la lecture du fichier {file_path} : {e}")
         return None  # Retourne `None` au lieu de lever une exception
+
+
+
+def get_latest_file(directory):
+    """
+    Récupère le fichier JSON le plus récent dans le répertoire spécifié.
+    """
+    try:
+        files = [f for f in os.listdir(directory) if f.endswith(".json")]
+        if not files:
+            warning("Aucun fichier trouvé dans le dossier de transformation.")
+            return None
+
+        latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(directory, f)))
+        return os.path.join(directory, latest_file)
+
+    except Exception as e:
+        error("Erreur lors de la recherche du fichier : {}".format(e))
+        return None
