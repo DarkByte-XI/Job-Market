@@ -25,11 +25,10 @@ def search_offers(query: str = Query(..., description = "Mot-clé recherché")):
             processed_offer_vectors = offer_vectors,
             processed_offers = offers,
             top_n = 10,
-            score_threshold = 0.3
         )
         results: List[JobOfferResponse] = []
         for o in recos:
-            # Coercie pour éviter les None auprès de Pydantic
+            # Coerce pour éviter les None auprès de Pydantic
             description = o.get("description") or ""
             company = o.get("company") or ""
             location = o.get("location") or ""

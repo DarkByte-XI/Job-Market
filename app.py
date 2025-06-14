@@ -3,10 +3,10 @@ import requests
 
 st.set_page_config(page_title="Recommandation d'offres d'emploi", layout="wide")
 
-st.title("🔎 Recommandation d'offres d'emploi")
-st.markdown("Saisissez un mot-clé (ex : `data engineer`, `product owner`, etc.) pour afficher les offres recommandées selon l'API.")
+st.title("🔎 Recommandation d'offres d'emploi High Tech")
+st.markdown("Saisissez un mot-clé et la localisation souhaitée (ex : `data engineer à Bordeaux`, `product owner Paris`, etc.) pour afficher les offres recommandées.")
 
-query = st.text_input("Votre recherche", placeholder="Ex : data engineer")
+query = st.text_input("Votre recherche", placeholder="Ex : Data Analyst à Paris")
 
 if st.button("Rechercher") and query:
     try:

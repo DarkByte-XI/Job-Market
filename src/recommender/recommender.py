@@ -42,7 +42,7 @@ def load_processed_offers(file_path: str):
 
 
 def build_recommendation_engine_from_folder(folder_path: str,
-                                            weight_title: int = 1,
+                                            weight_title: int = 3,
                                             weight_location: int = 1,
                                             weight_description: int = 0):
     """
@@ -86,7 +86,7 @@ def build_recommendation_engine_from_folder(folder_path: str,
     return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list#, normalized_offers
 
 
-def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5, score_threshold: float = 0.4):
+def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5, score_threshold: float = 0.45):
     """
     Génère une liste d'offres recommandées à partir d'une requête utilisateur.
 
