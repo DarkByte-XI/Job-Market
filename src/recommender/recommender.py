@@ -42,9 +42,9 @@ def load_processed_offers(file_path: str):
 
 
 def build_recommendation_engine_from_folder(folder_path: str,
-                                            weight_title: int = 3,
+                                            weight_title: int = 2,
                                             weight_location: int = 1,
-                                            weight_description: int = 0):
+                                            weight_description: int = 1):
     """
     Construit le moteur de recommandation à partir du dernier fichier JSON transformé
     trouvé dans le dossier donné.
@@ -65,11 +65,13 @@ def build_recommendation_engine_from_folder(folder_path: str,
         data = prepare_offer_data(_offer)
        # normalized_offers.append(data)
 
-        # Combination des champs pour obtenir une sortie composé de toutes les informations :
+        # Combination des champs pour obtenir une sortie composée de toutes les informations :
         current_weight_description = weight_description if data["description"] else 0
+        current_weight_location = weight_location if data["location"] else 0
+
         combined_text = " ".join(
             [data["title"]] * weight_title +
-            [data["location"]] * weight_location +
+            [data["location"]] * current_weight_location +
             [data["description"]] * current_weight_description
         )
         combined_text_list.append(combined_text)
@@ -86,7 +88,7 @@ def build_recommendation_engine_from_folder(folder_path: str,
     return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list#, normalized_offers
 
 
-def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5, score_threshold: float = 0.45):
+def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5, score_threshold: float = 0.3):
     """
     Génère une liste d'offres recommandées à partir d'une requête utilisateur.
 
@@ -118,7 +120,12 @@ def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors
     # Extraire les indices pour les top n offres (si elles existent)
     top_indices = [i for i, score in scored_offers][:top_n]
 
-    recommended_offers = [processed_offers[i] for i in top_indices]
+    recommended_offers = [
+        processed_offers[i]
+        for i in top_indices
+        if processed_offers[i].get("location")  # ne garde que celles qui ont location non vide
+    ]
+
     return recommended_offers
 
 

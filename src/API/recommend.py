@@ -24,7 +24,7 @@ def search_offers(query: str = Query(..., description = "Mot-clé recherché")):
             offers_vectorizer = vectorizer,
             processed_offer_vectors = offer_vectors,
             processed_offers = offers,
-            top_n = 10,
+            top_n = 20,
         )
         results: List[JobOfferResponse] = []
         for o in recos:
