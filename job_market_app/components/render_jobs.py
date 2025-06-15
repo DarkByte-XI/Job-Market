@@ -1,11 +1,11 @@
-# html_cards.py
+# render_jobs.py
 import streamlit as st
 
 def render_jobs(results, query):
-    # 1) Construire tout le HTML dans une seule string (sans backticks)
+    # 1) Structure HTML
     html = (
         '<div class="jobs-container">'
-        f'  <div class="result-header">{len(results)} offres pour « {query} »</div>'
+        f'  <div class="result-header">{len(results)} offres recommendées {query}</div>'
     )
 
     for o in results:
