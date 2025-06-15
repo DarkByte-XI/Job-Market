@@ -6,10 +6,10 @@ from typing import List, Dict, Any
 import pandas as pd
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from jobs_api.utils import save_to_json, load_json_safely
+from fetch_functions.utils import save_to_json, load_json_safely
 from config.logger import warning, info, error
 from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
-from jobs_api.utils import get_latest_file
+from fetch_functions.utils import get_latest_file
 
 
 # Définition des chemins

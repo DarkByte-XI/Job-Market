@@ -1,8 +1,8 @@
 from config.logger import *
-from jobs_api.utils import load_json_safely, save_to_json
-from jobs_api.adzuna_api import fetch_jobs_from_adzuna
-from jobs_api.france_travail_api import get_bearer_token, fetch_jobs_from_france_travail
-from jobs_api.jsearch_api import fetch_jobs_from_jsearch
+from fetch_functions.utils import load_json_safely, save_to_json
+from fetch_functions.adzuna_api import fetch_jobs_from_adzuna
+from fetch_functions.france_travail_api import get_bearer_token, fetch_jobs_from_france_travail
+from fetch_functions.jsearch_api import fetch_jobs_from_jsearch
 
 
 # Déterminer le chemin racine du projet (Job_Market)

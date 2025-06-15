@@ -386,7 +386,7 @@ Job_Market/
 │   ├── db/
 │   │   ├── config.py
 │   │   ├── db_connection.py
-│   ├── jobs_api/
+│   ├── fetch_functions/
 │   │   ├── adzuna_api.py
 │   │   ├── france_travail.py
 │   │   ├── jsearch_api.py

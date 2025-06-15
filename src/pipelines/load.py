@@ -3,7 +3,7 @@ import datetime
 from db.db_connection import connect_db
 from config.logger import info, warning, critical
 from pipelines.transform import PROCESSED_DATA_DIR
-from jobs_api.utils import get_latest_file
+from fetch_functions.utils import get_latest_file
 
 
 def insert_source(cur, source_name):
