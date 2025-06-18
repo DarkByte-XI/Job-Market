@@ -5,7 +5,7 @@ import unicodedata
 from typing import List, Dict, Any
 import pandas as pd
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from fetch_functions.utils import save_to_json, load_json_safely
 from config.logger import warning, info, error
 from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
@@ -64,39 +64,41 @@ def normalize_text(text):
     return s
 
 
-communes_dict = {}  # Dictionnaire pour correspondance `Code_postal` → `Libellé_d_acheminement`
-communes_nom_dict = {}  # Dictionnaire `Nom_de_la_commune` → `Code_postal`
 
-if not os.path.exists(INSEE_FILE):
-    error(f"Fichier INSEE introuvable : {INSEE_FILE}")
-else:
+def load_insee_data(file_path: str) -> tuple[dict, dict]:
+    """
+    Charge les données INSEE depuis un fichier CSV et retourne deux dictionnaires :
+    - code_postal → libellé_d_acheminement
+    - nom_commune_normalisé → code_postal
+    """
+    communes_dict = {}
+    communes_nom_dict = {}
+
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Fichier INSEE introuvable : {file_path}")
+
     try:
-        info(f"Chargement du fichier INSEE : {INSEE_FILE}")
-        communes_df = pd.read_csv(INSEE_FILE, sep=";", dtype=str, encoding="ISO-8859-1")
+        df = pd.read_csv(file_path, sep=";", dtype=str, encoding="ISO-8859-1")
 
-        # Vérification des colonnes requises
         required_columns = {"Nom_de_la_commune", "Code_postal", "Libellé_d_acheminement"}
-        if not required_columns.issubset(communes_df.columns):
-            raise ValueError(f"Colonnes manquantes dans le fichier INSEE : {required_columns - set(communes_df.columns)}")
+        if not required_columns.issubset(df.columns):
+            raise ValueError(f"Colonnes manquantes : {required_columns - set(df.columns)}")
 
-        # Stocker les correspondances
-        for _, row in communes_df.iterrows():
-            commune_norm = normalize_text(row["Nom_de_la_commune"])
-            libelle_norm = normalize_text(row["Libellé_d_acheminement"])
+        for _, row in df.iterrows():
+            commune_norm = row["Nom_de_la_commune"]
+            libelle_norm = row["Libellé_d_acheminement"]
             code_postal = row["Code_postal"]
 
-            # Associer `Code_postal` à `Libellé_d_acheminement`
             communes_dict.setdefault(code_postal, libelle_norm)
-
-            # Associer `Nom_de_la_commune` à `Code_postal`
             communes_nom_dict.setdefault(commune_norm, code_postal)
 
-        info(f"{len(communes_dict)} codes postaux chargés avec libellé d'acheminement.")
-        info(f"{len(communes_nom_dict)} communes chargées avec code postal.")
     except Exception as e:
-        error(f"Erreur lors du chargement du fichier INSEE : {e}")
-        communes_dict = {}  # Dictionnaire vide en cas d'erreur
-        communes_nom_dict = {}
+        error(f"Erreur chargement fichier INSEE : {e}")
+
+    return communes_dict, communes_nom_dict
+
+communes_dict, communes_nom_dict = load_insee_data(INSEE_FILE)
+
 
 
 def harmonize_company_name(company_name):
@@ -157,12 +159,14 @@ def match_commune_insee(commune):
     return None
 
 
+
 def clean_description(text):
     """Nettoie la description en supprimant les balises HTML et les espaces inutiles."""
     if not text:
         return None
     text = re.sub(r"<[^>]+>", " ", text).replace("\n", " ").replace("\r", " ").replace("&nbsp;", " ")
     return re.sub(r"\s+", " ", text).strip()
+
 
 
 def extract_salary_france_travail(salary_text):
@@ -261,6 +265,7 @@ def extract_salary_france_travail(salary_text):
     return salary_min, salary_max
 
 
+
 def extract_location_france_travail(location_data):
     """
     Extrait la localisation et le code postal pour France Travail :
@@ -309,6 +314,7 @@ def extract_location_france_travail(location_data):
 
     # Si aucun match trouvé, garder l'original
     return location_cleaned, matched_cp if matched_cp else None
+
 
 
 def extract_location_adzuna(location_data):
@@ -373,6 +379,7 @@ def extract_location_adzuna(location_data):
     return first_part, matched_cp if matched_cp else None, country
 
 
+
 def extract_location_jsearch(location_name):
     """
     Recherche le code postal pour une localisation JSearch et récupère le nom du pays correspondant :
@@ -414,6 +421,7 @@ def extract_location_jsearch(location_name):
     return commune, matched_cp if matched_cp is not None else None, None
 
 
+
 def convert_to_timestamp(date_str):
     """
     Convertit une date sous différents formats en un timestamp PostgreSQL-compatible.
@@ -443,6 +451,7 @@ def convert_to_timestamp(date_str):
 
     # Si aucun format ne correspond, on retourne None
     return None
+
 
 
 def convert_relative_time(relative_str):
@@ -477,14 +486,16 @@ def convert_relative_time(relative_str):
     return None
 
 
-TRANSFORMATION_FUNCTIONS = {
-    "adzuna": lambda job: {
+
+def transform_adzuna_jobs(job):
+    loc_adz, cp_adz, country = extract_location_adzuna(job.get("location"))
+    return {
         "source": "Adzuna",
         "external_id": job.get("id"),
         "title": job.get("title"),
         "company": harmonize_company_name(job.get("company", {}).get("display_name")),
-        "location": extract_location_adzuna(job.get("location"))[0],
-        "code_postal": extract_location_adzuna(job.get("location"))[1],
+        "location": loc_adz,
+        "code_postal": cp_adz,
         "longitude": job.get("longitude"),
         "latitude": job.get("latitude"),
         "contract_type": job.get("contract_type"),
@@ -492,17 +503,22 @@ TRANSFORMATION_FUNCTIONS = {
         "salary_max": job.get("salary_max"),
         "sector": job.get("category", {}).get("label"),
         "description": None,
-        "country": extract_location_adzuna(job.get("location"))[2],
+        "country": country,
         "created_at": convert_to_timestamp(job.get("created")),
         "apply_url": job.get("redirect_url")
-    },
-    "france_travail": lambda job: {
+    }
+
+
+
+def transform_france_travail_jobs(job):
+    loc_ft, cp_ft = extract_location_france_travail(job.get("lieuTravail"))
+    return {
         "source": "France Travail",
         "external_id": job.get("id"),
         "title": job.get("intitule"),
         "company": harmonize_company_name(job.get("entreprise", {}).get("nom")),
-        "location": extract_location_france_travail(job.get("lieuTravail"))[0],
-        "code_postal": extract_location_france_travail(job.get("lieuTravail"))[1],
+        "location": loc_ft,
+        "code_postal": cp_ft,
         "longitude": job.get("lieuTravail", {}).get("longitude"),
         "latitude": job.get("lieuTravail", {}).get("latitude"),
         "contract_type": job.get("typeContrat"),
@@ -512,15 +528,20 @@ TRANSFORMATION_FUNCTIONS = {
         "description": clean_description(job.get("description")),
         "country": "FRANCE",
         "created_at": convert_to_timestamp(job.get("dateCreation")),
-        "apply_url": job.get("origineOffre", {}).get("urlOrigine")
-    },
-    "jsearch": lambda job: {
+        "apply_url": job.get("origineOffre", {}).get("urlOrigine"),
+    }
+
+
+
+def transform_jsearch_jobs(job):
+    loc_js, cp_js, country = extract_location_jsearch(job.get("job_location"))
+    return {
         "source": "JSearch",
         "external_id": job.get("job_id"),
         "title": job.get("job_title"),
         "company": harmonize_company_name(job.get("employer_name")),
-        "location": extract_location_jsearch(job.get("job_location"))[0],
-        "code_postal": extract_location_jsearch(job.get("job_location"))[1],
+        "location": loc_js,
+        "code_postal": cp_js,
         "longitude": job.get("job_longitude"),
         "latitude": job.get("job_latitude"),
         "contract_type": job.get("job_employment_type"),
@@ -528,10 +549,16 @@ TRANSFORMATION_FUNCTIONS = {
         "salary_max": job.get("job_max_salary"),
         "sector": None,
         "description": clean_description(job.get("job_description")),
-        "country": extract_location_jsearch(job.get("job_country"))[2],
+        "country": country,
         "created_at": convert_relative_time(job.get("job_posted_at")),
         "apply_url": job.get("job_apply_link")
     }
+
+
+TRANSFORMATION_FUNCTIONS = {
+        "adzuna": transform_adzuna_jobs,
+        "france_travail": transform_france_travail_jobs,
+        "jsearch": transform_jsearch_jobs,
 }
 
 
@@ -557,7 +584,7 @@ def process_source_files(source: str, source_dir: str) -> List[Dict[str, Any]]:
     data = load_json_safely(latest_path) or []
 
     # Transforme chaque offre en parallèle
-    with ThreadPoolExecutor() as executor:
+    with ProcessPoolExecutor() as executor:
         transformed_jobs = list(
             executor.map(TRANSFORMATION_FUNCTIONS[source], data)
         )
@@ -668,4 +695,5 @@ def transform_jobs():
 
 
 if __name__ == "__main__":
+    info(f"Transformation des offres d'emploi en cours...")
     transform_jobs()
