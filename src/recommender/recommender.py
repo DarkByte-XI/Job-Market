@@ -1,15 +1,17 @@
 import os
 import json
-import glob
 from sklearn.metrics.pairwise import cosine_similarity
 from src.recommender.data_preparation import prepare_offer_data, text_normalization, vectorize_texts, transform_text
 from src.pipelines.transform import PROCESSED_DATA_DIR
 from pipelines.extract import BASE_DIR
+from fetch_functions.utils import get_latest_file
 
 
 # Répertoire des offres normalisées
 NORMALIZED_OFFERS_DIR = os.path.join(BASE_DIR, "data/normalized")
 os.makedirs(NORMALIZED_OFFERS_DIR, exist_ok=True)
+
+
 
 def compute_similarity(query_vector, offer_vectors):
     """
@@ -20,17 +22,6 @@ def compute_similarity(query_vector, offer_vectors):
     return scores.flatten()
 
 
-def get_latest_transformed_file(directory: str) -> str:
-    """
-    Récupère le dernier fichier transformed_{timestamp}.json dans le répertoire donné.
-    """
-    pattern = os.path.join(directory, "transformed_*.json")
-    files = glob.glob(pattern)
-    if not files:
-        raise FileNotFoundError(f"Aucun fichier transformed trouvé dans le dossier {directory}")
-    latest_file = max(files, key = os.path.getmtime)
-    return latest_file
-
 
 def load_processed_offers(file_path: str):
     """
@@ -39,6 +30,7 @@ def load_processed_offers(file_path: str):
     with open(file_path, 'r', encoding = 'utf-8') as f:
         processed_offers = json.load(f)
     return processed_offers
+
 
 
 def build_recommendation_engine_from_folder(folder_path: str,
@@ -54,7 +46,7 @@ def build_recommendation_engine_from_folder(folder_path: str,
       - Si la description est présente, on utilise le poids passé en paramètre.
       - Sinon, on ne prend pas en compte ce champ (poids = 0).
     """
-    latest_file = get_latest_transformed_file(folder_path)
+    latest_file = get_latest_file(folder_path)
     processed_offers = load_processed_offers(latest_file)
 
     combined_text_list = []
@@ -86,6 +78,7 @@ def build_recommendation_engine_from_folder(folder_path: str,
     #    json.dump(normalized_offers, f, indent=2, ensure_ascii=False)
 
     return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list#, normalized_offers
+
 
 
 def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors, processed_offers: list, top_n=5, score_threshold: float = 0.3):
@@ -127,6 +120,7 @@ def recommend_offers(user_input: str, offers_vectorizer, processed_offer_vectors
     ]
 
     return recommended_offers
+
 
 
 if __name__ == "__main__":
