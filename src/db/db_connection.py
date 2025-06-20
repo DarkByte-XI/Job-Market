@@ -1,9 +1,9 @@
-import psycopg2
+import psycopg
 from db.config import DB_CONFIG
-from src.config.logger import info, error
+from src.config.logger import error
 
 
-def connect_db() -> psycopg2.extensions.connection | None:
+def connect_db() -> psycopg.connection:
     """
     Etablit une connexion à une base de données PostgreSQL en utilisant la configuration fournie.
 
@@ -16,7 +16,7 @@ def connect_db() -> psycopg2.extensions.connection | None:
     :rtype : psycopg2.extensions.connection ou None
     """
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg.connect(**DB_CONFIG)
         #info("Connexion réussie à AWS RDS PostgreSQL")
         return conn
     except Exception as e:
