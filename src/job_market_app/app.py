@@ -11,7 +11,7 @@ st.set_page_config(
 
 # Image de fond
 st.image(
-    image="./job_market_app/content/park-troopers-RAtKWVlfdf4-unsplash-cropped.jpg",
+    image="./src/job_market_app/content/park-troopers-RAtKWVlfdf4-unsplash-cropped.jpg",
     use_container_width=True,
     output_format = "JPEG"
 
