@@ -31,11 +31,6 @@ def get_config():
             "BASE_URL": os.getenv("JSEARCH_BASE_URL"),
             "APP_KEY": os.getenv("JSEARCH_KEY")
         },
-        #"linkedin": {
-        #    "HOST": os.getenv("LINKEDIN_HOST"),
-        #    "BASE_URL": os.getenv("LINKEDIN_BASE_URL"),
-        #    "APP_KEY": os.getenv("LINKEDIN_KEY")
-        #},
         "france_travail": {
             "ID": os.getenv("FRANCE_TRAVAIL_ID"),
             "KEY": os.getenv("FRANCE_TRAVAIL_KEY"),
