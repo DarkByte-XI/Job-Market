@@ -21,11 +21,6 @@ def get_config():
             "APP_ID": os.getenv("ADZUNA_APP_ID"),
             "APP_KEY": os.getenv("ADZUNA_APP_KEY")
         },
-        "rapid_api": {
-            "HOST": os.getenv("RAPID_API_HOST"),
-            "BASE_URL": os.getenv("RAPID_BASE_URL"),
-            "APP_KEY": os.getenv("RAPID_API_KEY")
-        },
         "jsearch": {
             "HOST": os.getenv("JSEARCH_HOST"),
             "BASE_URL": os.getenv("JSEARCH_BASE_URL"),
@@ -39,12 +34,13 @@ def get_config():
     }
 
     # Vérifier les variables manquantes
-    missing_apis_credentials = []  # Pour afficher un seul log global
+    missing_apis_credentials = []
 
     for api, creds in config.items():
         missing_keys = [key for key, value in creds.items() if not value]
         if missing_keys:
-            missing_apis_credentials.append(error(f"{api} (manquants: {', '.join(missing_keys)})"))
+            error(f"{api} (manquants: {', '.join(missing_keys)})")
+            missing_apis_credentials.append(f"{api} (manquants: {', '.join(missing_keys)})")
 
     if missing_apis_credentials:
         warning(f"Certaines API ont des variables manquantes : {', '.join(missing_apis_credentials)}")
