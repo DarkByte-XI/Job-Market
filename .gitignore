@@ -3,6 +3,7 @@ __pycache__
 .idea/
 .venv/
 .env
+.env.*
 !.gitignore
 !data/.gitkeep
 data/processed_data/*
