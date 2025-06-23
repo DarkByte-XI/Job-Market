@@ -1,16 +1,8 @@
-import os
 import json
 from sklearn.metrics.pairwise import cosine_similarity
 from src.recommender.data_preparation import prepare_offer_data, text_normalization, vectorize_texts, transform_text
 from src.pipelines.transform import PROCESSED_DATA_DIR
-from pipelines.extract import BASE_DIR
 from fetch_functions.utils import get_latest_file
-
-
-# Répertoire des offres normalisées
-NORMALIZED_OFFERS_DIR = os.path.join(BASE_DIR, "data/normalized")
-os.makedirs(NORMALIZED_OFFERS_DIR, exist_ok=True)
-
 
 
 def compute_similarity(query_vector, offer_vectors):
@@ -50,12 +42,10 @@ def build_recommendation_engine_from_folder(folder_path: str,
     processed_offers = load_processed_offers(latest_file)
 
     combined_text_list = []
-    #normalized_offers = []
 
     for _offer in processed_offers:
         # Normalisation des données du fichier selon les règles de normalisation présentes dans data_preparation.py :
         data = prepare_offer_data(_offer)
-       # normalized_offers.append(data)
 
         # Combination des champs pour obtenir une sortie composée de toutes les informations :
         current_weight_description = weight_description if data["description"] else 0
@@ -77,7 +67,7 @@ def build_recommendation_engine_from_folder(folder_path: str,
     #with open(output_path, "w") as f:
     #    json.dump(normalized_offers, f, indent=2, ensure_ascii=False)
 
-    return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list#, normalized_offers
+    return processed_offers, offers_vectorizer, processed_offer_vectors, combined_text_list
 
 
 
