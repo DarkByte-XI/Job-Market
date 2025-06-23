@@ -1,5 +1,5 @@
 import json
-from config.logger import *
+from logger.logger import *
 from datetime import datetime
 
 

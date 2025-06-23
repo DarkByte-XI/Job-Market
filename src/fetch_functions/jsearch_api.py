@@ -1,6 +1,6 @@
 import requests
-from config.logger import *
-from config.config_loader import get_config
+from logger.logger import *
+from fetch_functions.config import get_config
 
 
 # Charger les credentials API

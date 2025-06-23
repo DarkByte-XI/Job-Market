@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
 from fetch_functions.utils import save_to_json, load_json_safely
-from config.logger import warning, info, error
+from logger.logger import warning, info, error
 from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
 from fetch_functions.utils import get_latest_file
 

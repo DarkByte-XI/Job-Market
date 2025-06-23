@@ -1,6 +1,6 @@
 import psycopg
 from db.config import DB_CONFIG
-from src.config.logger import error
+from src.logger.logger import error
 
 
 def connect_db() -> psycopg.connection:
