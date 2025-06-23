@@ -13,7 +13,7 @@ import os
 from dotenv import load_dotenv
 
 DOTENV_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(DOTENV_BASE_DIR, "../../.env")
+dotenv_path = os.path.join(DOTENV_BASE_DIR, "../../.env.jobs_db")
 load_dotenv(dotenv_path = dotenv_path)
 
 
