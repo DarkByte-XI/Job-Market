@@ -12,15 +12,12 @@ Se référer à la documentation pour plus de détails.
 import os
 from dotenv import load_dotenv
 
-DOTENV_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(DOTENV_BASE_DIR, "../../.env")
-load_dotenv(dotenv_path = dotenv_path)
-
+load_dotenv()
 
 DB_CONFIG = {
-    "dbname": os.getenv("JOBS_POSTGRES_DB"),
-    "user": os.getenv("JOBS_POSTGRES_USER"),
-    "password": os.getenv("JOBS_POSTGRES_PASSWORD"),
-    "host": os.getenv("JOBS_POSTGRES_HOST"),
-    "port": os.getenv("JOBS_POSTGRES_PORT")
+    "dbname": os.getenv("POSTGRES_DB"),
+    "user": os.getenv("POSTGRES_USER"),
+    "password": os.getenv("POSTGRES_PASSWORD"),
+    "host": os.getenv("POSTGRES_HOST"),
+    "port": os.getenv("POSTGRES_PORT")
 }
