@@ -6,7 +6,7 @@ from fetch_functions.jsearch_api import fetch_jobs_from_jsearch
 
 
 # Déterminer le chemin racine du projet (Job_Market)
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+BASE_DIR = os.environ.get("PROJECT_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 # Chemins vers les fichiers de ressources
 RESSOURCES_DIR = os.path.join(BASE_DIR, "ressources")
