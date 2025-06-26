@@ -4,8 +4,8 @@ Routes FastAPI pour la récupération des entreprises distinctes.
 
 from fastapi import APIRouter
 from typing import List
-from src.API.schemas.company import CompanyResponse
-from src.pipelines.transform import PROCESSED_DATA_DIR
+from API.schemas.company import CompanyResponse
+from pipelines.transform import PROCESSED_DATA_DIR
 import os
 import json
 import glob
