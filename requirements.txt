@@ -61,3 +61,4 @@ widgetsnbextension==4.0.14
 psycopg~=3.2.9
 requests~=2.32.4
 streamlit~=1.46.0
+uvicorn~=0.34.3
