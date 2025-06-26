@@ -1,7 +1,7 @@
 import json
 from sklearn.metrics.pairwise import cosine_similarity
-from src.recommender.data_preparation import prepare_offer_data, text_normalization, vectorize_texts, transform_text
-from src.pipelines.transform import PROCESSED_DATA_DIR
+from recommender.data_preparation import prepare_offer_data, text_normalization, vectorize_texts, transform_text
+from pipelines.transform import PROCESSED_DATA_DIR
 from fetch_functions.utils import get_latest_file
 
 
