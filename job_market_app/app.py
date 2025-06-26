@@ -1,3 +1,5 @@
+import os
+import pathlib
 import streamlit as st
 import requests
 from components.render_jobs import render_jobs
@@ -9,14 +11,15 @@ st.set_page_config(
 
 )
 
+path = pathlib.Path(__file__).parent
+
 # Image de fond
 st.image(
-    image="./job_market_app/content/park-troopers-RAtKWVlfdf4-unsplash-cropped.jpg",
+    image=path/"content"/"park-troopers-RAtKWVlfdf4-unsplash-cropped.jpg",
     use_container_width=True,
     output_format = "JPEG"
 
 )
-
 
 
 # --- Injection CSS globale ---
@@ -160,8 +163,10 @@ if search and (quoi or ou):
         q = f'pour "{quoi} à {ou}"'.strip()
     try:
         with st.spinner("Recherche en cours…"):
+            from dotenv import load_dotenv; load_dotenv()
+            host = os.getenv("STREAMLIT_API_HOST")
             resp = requests.get(
-                "http://localhost:8000/search",
+                f"http://{host}:8000/search",
                 params={"query": q},
                 timeout=10,
             )
