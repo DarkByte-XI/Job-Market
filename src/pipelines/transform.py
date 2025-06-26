@@ -6,10 +6,9 @@ from typing import List, Dict, Any
 import pandas as pd
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
-from fetch_functions.utils import save_to_json, load_json_safely
+from fetch_functions.utils import save_to_json, load_json_safely, get_latest_file
 from logger.logger import warning, info, error
 from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
-from fetch_functions.utils import get_latest_file
 
 
 # Définition des chemins
@@ -691,9 +690,3 @@ def transform_jobs():
 
     except Exception as exception:
         error(f"Le fichier transformé n'a pas été sauvegardé - {exception}")
-
-
-
-if __name__ == "__main__":
-    info(f"Transformation des offres d'emploi en cours...")
-    transform_jobs()

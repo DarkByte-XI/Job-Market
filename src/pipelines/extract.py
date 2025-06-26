@@ -1,4 +1,5 @@
-from logger.logger import *
+from logger.logger import info
+import os
 from fetch_functions.utils import load_json_safely, save_to_json
 from fetch_functions.adzuna_api import fetch_jobs_from_adzuna
 from fetch_functions.france_travail_api import get_bearer_token, fetch_jobs_from_france_travail
