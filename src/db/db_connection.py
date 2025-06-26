@@ -1,6 +1,6 @@
 import psycopg
 from db.config import DB_CONFIG
-from src.logger.logger import error
+from logger.logger import error
 
 
 def connect_db() -> psycopg.connection:
@@ -13,7 +13,7 @@ def connect_db() -> psycopg.connection:
     renvoie None.
 
     :return : Un objet de connexion psycopg2 si la connexion est réussie, None dans le cas contraire.
-    :rtype : psycopg2.extensions.connection ou None
+    :rtype : Psycopg.connection ou None
     """
     try:
         conn = psycopg.connect(**DB_CONFIG)
