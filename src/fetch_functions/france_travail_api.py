@@ -2,11 +2,6 @@ import requests
 from logger.logger import *
 from fetch_functions.config import get_config
 
-# Charger les credentials API
-ft_config = get_config()
-IDENTIFIANT_CLIENT = ft_config["france_travail"]["ID"]
-CLE_SECRETE = ft_config["france_travail"]["KEY"]
-SCOPES_OFFRES = ft_config["france_travail"]["SCOPE"]
 
 # Endpoints de l'API France Travail
 TOKEN_URL = "https://entreprise.francetravail.fr/connexion/oauth2/access_token"
@@ -16,6 +11,13 @@ TOKEN_PARAMS = {"realm": "/partenaire"}
 
 def get_bearer_token():
     """Récupère un Bearer Token pour s'authentifier auprès de l'API France Travail."""
+
+    # Charger les credentials API
+    ft_config = get_config()
+    IDENTIFIANT_CLIENT = ft_config["france_travail"]["ID"]
+    CLE_SECRETE = ft_config["france_travail"]["KEY"]
+    SCOPES_OFFRES = ft_config["france_travail"]["SCOPE"]
+
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     data = {
         "grant_type": "client_credentials",

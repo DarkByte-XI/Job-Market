@@ -3,13 +3,6 @@ from logger.logger import *
 from fetch_functions.config import get_config
 
 
-# Charger les credentials API
-jsearch_config = get_config()
-JSEARCH_BASE_URL = jsearch_config["jsearch"]["BASE_URL"]
-JSEARCH_HOST = jsearch_config["jsearch"]["HOST"]
-JSEARCH_KEY = jsearch_config["jsearch"]["APP_KEY"]
-
-
 def fetch_jobs_from_jsearch(query, country, pages):
     """
     Récupère les offres d'emploi depuis l'API JSearch avec pagination.
@@ -19,6 +12,14 @@ def fetch_jobs_from_jsearch(query, country, pages):
     :param pages: Nombre de pages à récupérer.
     :return: Liste des offres d'emploi brutes.
     """
+
+    # Charger les credentials API
+    jsearch_config = get_config()
+    JSEARCH_BASE_URL = jsearch_config["jsearch"]["BASE_URL"]
+    JSEARCH_HOST = jsearch_config["jsearch"]["HOST"]
+    JSEARCH_KEY = jsearch_config["jsearch"]["APP_KEY"]
+
+
     url = f"{JSEARCH_BASE_URL}"
     headers = {
         "Content-Type": "application/json",

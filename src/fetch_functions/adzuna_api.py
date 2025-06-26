@@ -3,19 +3,19 @@ from logger.logger import *
 from fetch_functions.config import get_config
 
 
-# Charger les credentials API
-adzuna_config = get_config()
-ADZUNA_BASE_URL = adzuna_config["adzuna"]["BASE_URL"]
-ADZUNA_APP_ID = adzuna_config["adzuna"]["APP_ID"]
-ADZUNA_APP_KEY = adzuna_config["adzuna"]["APP_KEY"]
-
-
 def fetch_jobs_from_adzuna(criteria):
     """
     Récupère les offres d'emploi depuis l'API Adzuna en paginant.
     :param criteria: Dictionnaire contenant les critères de recherche (ex: {"query": "Data Engineer", "results_per_page": 50})
     :return: Liste des offres brutes (JSON)
     """
+
+    # Charger les credentials API
+    adzuna_config = get_config()
+    ADZUNA_BASE_URL = adzuna_config["adzuna"]["BASE_URL"]
+    ADZUNA_APP_ID = adzuna_config["adzuna"]["APP_ID"]
+    ADZUNA_APP_KEY = adzuna_config["adzuna"]["APP_KEY"]
+
     page = 1
     country = "fr"
     total_count = 0
