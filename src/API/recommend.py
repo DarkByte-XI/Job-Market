@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Query
 from typing import List
-from src.recommender.recommender import (
+from recommender.recommender import (
     build_recommendation_engine_from_folder,
     recommend_offers
 )
-from src.pipelines.transform import PROCESSED_DATA_DIR
-from src.API.schemas.job import JobOfferResponse
+from API.schemas.job import JobOfferResponse
+import os
 
 router = APIRouter()
 
-offers, vectorizer, offer_vectors, texts = build_recommendation_engine_from_folder(PROCESSED_DATA_DIR)
+ROOT = os.environ.get("PROJECT_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+PROCESSED_OFFERS_DIR = os.path.join(ROOT, "data/processed_data")
+
+offers, vectorizer, offer_vectors, texts = build_recommendation_engine_from_folder(PROCESSED_OFFERS_DIR)
 
 
 @router.get("/search", response_model = List[JobOfferResponse])
