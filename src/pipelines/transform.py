@@ -690,3 +690,6 @@ def transform_jobs():
 
     except Exception as exception:
         error(f"Le fichier transformé n'a pas été sauvegardé - {exception}")
+
+if __name__ == "__main__":
+    transform_jobs()
