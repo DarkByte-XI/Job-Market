@@ -163,10 +163,9 @@ if search and (quoi or ou):
         q = f'pour "{quoi} à {ou}"'.strip()
     try:
         with st.spinner("Recherche en cours…"):
-            from dotenv import load_dotenv; load_dotenv()
             host = os.getenv("STREAMLIT_API_HOST")
             resp = requests.get(
-                f"http://{host}:8000/search",
+                f"{host}",
                 params={"query": q},
                 timeout=10,
             )
