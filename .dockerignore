@@ -1,0 +1,36 @@
+# Empêche la copie des environnements virtuels Python
+.venv/
+env/
+venv/
+
+# Empêche la copie des fichiers de logger sensibles
+.env
+.env.*
+.dockerignore
+tmp/
+
+# Cache et fichiers compilés Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Dossiers de logs
+logs/
+*.log
+
+# Exclure les fichiers du dossier sql/
+sql/update_tables.sql
+sql/views.sql
+
+# Fichiers d’OS ou d’éditeurs
+.DS_Store
+.idea/
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+#sql
+src/sql/update_tables.sql
