@@ -1,6 +1,6 @@
 import os
 import logging
-from config.logger import info, error, warning
+from logger.logger import error, warning
 from dotenv import load_dotenv
 
 # Configuration des logs

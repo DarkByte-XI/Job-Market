@@ -1,4 +1,4 @@
-from logger.logger import info
+from logger.logger import info, error
 import os
 from fetch_functions.utils import load_json_safely, save_to_json
 from fetch_functions.adzuna_api import fetch_jobs_from_adzuna
@@ -29,21 +29,18 @@ ADZUNA_OUTPUT_DIR = os.path.join(RAW_DATA_DIR, "adzuna/output")
 FT_OUTPUT_DIR = os.path.join(RAW_DATA_DIR, "france_travail/output")
 JS_OUTPUT_DIR = os.path.join(RAW_DATA_DIR, "jsearch/output")
 
+# Charger les queries pour Adzuna et Jsearch
+job_keywords = load_json_safely(JOB_KEYWORDS_FILE)
+job_queries = job_keywords.get("title", []) if job_keywords else []
 
-def extract_all_jobs():
+# Charger les appellations pour France Travail
+appellations = load_json_safely(APPELLATIONS_FILE)
+job_appellations = [app["code"] for app in appellations] if appellations else []
+
+
+def extract_from_adzuna():
     """Orchestration : récupère les offres d'emploi de toutes les APIs et les unifie."""
-    info("Début de l'extraction des offres d'emploi...")
-
-    # Charger les requêtes pour Adzuna
-    job_keywords = load_json_safely(JOB_KEYWORDS_FILE)
-    job_queries = job_keywords.get("title", []) if job_keywords else []
-
-    # Charger les appellations pour France Travail
-    appellations = load_json_safely(APPELLATIONS_FILE)
-    job_appellations = [app["code"] for app in appellations] if appellations else []
-
-    all_jobs = []
-
+    info("Début de l'extraction des offres d'emploi depuis Adzuna...")
     # Extraction depuis Adzuna avec plusieurs mots-clés
     adzuna_jobs = []
     for query in job_queries:
@@ -51,10 +48,18 @@ def extract_all_jobs():
         jobs, _ = fetch_jobs_from_adzuna(criteria)
         adzuna_jobs.extend(jobs)
 
-    save_to_json(adzuna_jobs, ADZUNA_OUTPUT_DIR, "adzuna")  # Sauvegarde brute
-    all_jobs.extend(adzuna_jobs)
+    try:
+        save_to_json(adzuna_jobs, ADZUNA_OUTPUT_DIR, "adzuna")  # Sauvegarde brute
+        info(f"{len(adzuna_jobs)} offres extraite de Adzuna")
+    except Exception as e:
+        error(f'{e}')
 
+    return adzuna_jobs
+
+
+def extract_from_ft():
     # Extraction depuis France Travail avec les appellations sélectionnées.
+    info("Début de l'extraction des offres d'emploi depuis France Travail...")
     france_travail_jobs = []
     token = get_bearer_token()
     if token:
@@ -62,19 +67,43 @@ def extract_all_jobs():
             jobs = fetch_jobs_from_france_travail(token, code)
             france_travail_jobs.extend(jobs)
 
-    save_to_json(france_travail_jobs, FT_OUTPUT_DIR, "france_travail")  # Sauvegarde brute
-    all_jobs.extend(france_travail_jobs)
+    try:
+        save_to_json(france_travail_jobs, FT_OUTPUT_DIR, "france_travail")  # Sauvegarde brute
+        info(f"{len(france_travail_jobs)} offres extraite de France Travail")
+    except Exception as e:
+        error(f'{e}')
 
+    return france_travail_jobs
+
+
+def extract_from_jsearch():
     # Extraction depuis JSearch
+    info("Début de l'extraction des offres d'emploi depuis JSearch...")
     jsearch_all_jobs = []
     for query in job_queries:
         jsearch_jobs = fetch_jobs_from_jsearch(query, pages = 20, country = "fr")
         jsearch_all_jobs.extend(jsearch_jobs)
 
-    save_to_json(jsearch_all_jobs, JS_OUTPUT_DIR, "jsearch")  # Sauvegarde brute
-    all_jobs.extend(jsearch_all_jobs)
+    try:
+        save_to_json(jsearch_all_jobs, JS_OUTPUT_DIR, "jsearch")  # Sauvegarde brute
+        info(f"{len(jsearch_all_jobs)} offres extraite au total")
+    except Exception as e:
+        error(f'{e}')
 
-    return all_jobs  # Retourne les données brutes, sans modification
+    return jsearch_all_jobs
+
+
+def extract_all_jobs():
+    """Fonction centrale pour tout orchestrer proprement"""
+    adzuna_jobs = extract_from_adzuna()
+    ft_jobs = extract_from_ft()
+    jsearch_jobs = extract_from_jsearch()
+
+    all_jobs = adzuna_jobs + ft_jobs + jsearch_jobs
+    info(f"[FINAL] Total des offres extraites : {len(all_jobs)}")
+
+    return all_jobs
+
 
 if __name__ == "__main__":
     extract_all_jobs()
