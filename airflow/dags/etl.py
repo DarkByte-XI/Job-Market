@@ -1,4 +1,5 @@
 from airflow.utils.task_group import TaskGroup
+from datetime import timedelta, datetime
 from airflow import DAG
 from airflow.decorators import task
 from pipelines.extract import extract_from_adzuna, extract_from_ft, extract_from_jsearch
@@ -9,7 +10,9 @@ from pipelines.transform import (
 
 with DAG("job_market_ETL",
          catchup = False,
-         schedule = None) as etl_dag:
+         schedule = timedelta(days = 16),
+         start_date = datetime(2025, 7, 8)
+         ) as etl_dag:
 
     with TaskGroup("extract") as extract_group:
 
