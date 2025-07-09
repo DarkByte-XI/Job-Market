@@ -47,4 +47,4 @@ with DAG("job_market_ETL",
 
     load = load_jobs_to_database()
 
-    extract_group >> transform >> load
+    etl = extract_group >> transform >> load
