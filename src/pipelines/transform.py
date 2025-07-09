@@ -2,10 +2,13 @@ import os
 import json
 import re
 import unicodedata
+from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List, Dict, Any
 import pandas as pd
 from datetime import datetime
-from concurrent.futures import ProcessPoolExecutor
+
+from more_itertools.more import chunked
+
 from fetch_functions.utils import save_to_json, load_json_safely, get_latest_file
 from logger.logger import warning, info, error
 from pipelines.extract import BASE_DIR, RAW_DATA_DIR, RESSOURCES_DIR
@@ -581,12 +584,18 @@ def process_source_files(source: str, source_dir: str) -> List[Dict[str, Any]]:
 
     # Charge les données brutes
     data = load_json_safely(latest_path) or []
+    info(f"{len(data)} offres brutes chargées pour {source}")
 
     # Transforme chaque offre en parallèle
-    with ProcessPoolExecutor() as executor:
-        transformed_jobs = list(
-            executor.map(TRANSFORMATION_FUNCTIONS[source], data)
-        )
+    transformed_jobs = []
+    CHUNK_SIZE = 10000
+
+    for i, batch in enumerate(chunked(data, CHUNK_SIZE), start=1):
+        info(f"Traitement du batch {i}")
+        with ThreadPoolExecutor() as executor:
+            results = list(
+                executor.map(TRANSFORMATION_FUNCTIONS[source], batch))
+            transformed_jobs.extend(results)
 
     info(f"{len(transformed_jobs)} offres transformées pour {source} "
          f"(fichier: {os.path.basename(latest_path)})")
