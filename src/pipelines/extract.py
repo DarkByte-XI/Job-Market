@@ -61,11 +61,19 @@ def extract_from_ft():
     # Extraction depuis France Travail avec les appellations sélectionnées.
     info("Début de l'extraction des offres d'emploi depuis France Travail...")
     france_travail_jobs = []
+    seen_ids = set()
     token = get_bearer_token()
     if token:
         for code in job_appellations:
             jobs = fetch_jobs_from_france_travail(token, code)
-            france_travail_jobs.extend(jobs)
+            # Gestion des doublons dès à présent, car les codes d'appellations contiennent des offres en correspondance
+            # Optimisation nécessaire pour traiter les données brutes dans le DAG transform dans airflow, qui avant
+            # cette intégration générait un SIGKILL dû à une surcharge de la mémoire.
+            for job in jobs:
+                job_id = job.get("id")
+                if job_id and job_id not in seen_ids:
+                    france_travail_jobs.append(job)
+                    seen_ids.add(job_id)
 
     try:
         save_to_json(france_travail_jobs, FT_OUTPUT_DIR, "france_travail")  # Sauvegarde brute
@@ -106,4 +114,4 @@ def extract_all_jobs():
 
 
 if __name__ == "__main__":
-    extract_all_jobs()
+    extract_from_ft()
