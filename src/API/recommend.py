@@ -12,7 +12,18 @@ router = APIRouter()
 ROOT = os.environ.get("PROJECT_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 PROCESSED_OFFERS_DIR = os.path.join(ROOT, "data/processed_data")
 
-offers, vectorizer, offer_vectors, texts = build_recommendation_engine_from_folder(PROCESSED_OFFERS_DIR)
+offers = []
+vectorizer = None
+offer_vectors = None
+texts = []
+
+def load_recommendation_data() -> None:
+    global offers, vectorizer, offer_vectors, texts
+    offers, vectorizer, offer_vectors, texts = build_recommendation_engine_from_folder(PROCESSED_OFFERS_DIR)
+    print(f"✅ Données rechargées depuis {PROCESSED_OFFERS_DIR}")
+
+# Chargement initial
+load_recommendation_data()
 
 
 @router.get("/search", response_model = List[JobOfferResponse])
@@ -65,3 +76,12 @@ def search_offers(query: str = Query(..., description = "Mot-clé recherché")):
     except Exception as e:
         print(f"Erreur dans /search : {e}")
         raise
+
+
+@router.post("/reload", status_code=200)
+def reload_offers():
+    try:
+        load_recommendation_data()
+        return {"message": "Données rechargées avec succès"}
+    except Exception as e:
+        return {"error": str(e)}
