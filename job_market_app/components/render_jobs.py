@@ -12,11 +12,19 @@ def render_jobs(results, query):
         tag_location = (
             f'<span class="tag1">📍 {o["location"]} - {o["code_postal"]}</span>'
         )
-        tag_salary = (
-            f'<span class="tag2">💶 {o["salary_min"]} - {o["salary_max"]} €/an</span>'
-            if o.get("salary_min")
-            else ""
-        )
+
+        # Affichage conditionnel du salaire
+        salary_min = o.get("salary_min")
+        salary_max = o.get("salary_max")
+
+        if salary_min is not None:
+            unit = "€/mois" if salary_min <= 10000 else "€/an"
+            salary_range = f"{salary_min}"
+            if salary_max:
+                salary_range += f" - {salary_max}"
+            tag_salary = f'<span class="tag2">💶 {salary_range} {unit}</span>'
+        else:
+            tag_salary = ""
 
         html += (
             '<div class="job-card">'
