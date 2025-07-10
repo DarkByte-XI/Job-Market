@@ -74,8 +74,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./src/sql/:/docker-entrypoint-initdb.d/  # scripts d'init SQL
+      - ./src/sql:/src/sql:ro
+      - ./src/sql/entrypoint.sh:/docker-entrypoint-initdb.d/99-init-custom.sh:ro
   
   
   airflow-db:
