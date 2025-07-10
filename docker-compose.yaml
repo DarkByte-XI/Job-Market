@@ -3,34 +3,61 @@ services:
   x-airflow-common:
     &airflow-common
     # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-    # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
+    # Comment the image line, place your Dockerfile.streamlit.api in the directory where you placed the docker-compose.yaml
     # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-    
-    image: apache/airflow:3.0.2-python3.12
-    # build: .
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+      args:
+        AIRFLOW_BASE_IMAGE: ${AIRFLOW_BASE_IMAGE:-apache/airflow:3.0.0-python3.12}
+    image: ${JM_IMAGE_NAME}:${JM_IMAGE_TAG}
     environment:
       &airflow-common-env
+      TZ: ${TIME_ZONE}
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@airflow-db:5432/${AIRFLOW_POSTGRES_DB}
-      AIRFLOW__CORE__FERNET_KEY: '${AIRFLOW_FERNET_KEY}'
+      AIRFLOW__CORE__FERNET_KEY: ${FERNET_KEY}
+      AIRFLOW__CORE__INTERNAL_API_SECRET_KEY: ${INTERNAL_API_SECRET_KEY}
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
-      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-      AIRFLOW__CONFIG: '/opt/airflow/config/airflow.cfg'
-      PYTHONPATH: /opt/airflow:/opt/airflow/src
+      #AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+      AIRFLOW__API__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
+      AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+      AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW__API_AUTH__JWT_SECRET}
+      AIRFLOW__API_AUTH__JWT_EXPIRATION_TIME: '2592000'
+      #_PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+      PYTHONPATH: /src
+      PROJECT_ROOT: /
+      ADZUNA_BASE_URL: ${ADZUNA_BASE_URL}
+      ADZUNA_APP_ID: ${ADZUNA_APP_ID}
+      ADZUNA_APP_KEY: ${ADZUNA_APP_KEY}
+      JSEARCH_HOST: ${JSEARCH_HOST}
+      JSEARCH_BASE_URL: ${JSEARCH_BASE_URL}
+      JSEARCH_KEY: ${JSEARCH_BASE_URL}
+      FRANCE_TRAVAIL_ID: ${FRANCE_TRAVAIL_ID}
+      FRANCE_TRAVAIL_KEY: ${FRANCE_TRAVAIL_KEY}
+      FRANCE_TRAVAIL_SCOPES: ${FRANCE_TRAVAIL_SCOPES}
+      JOBS_POSTGRES_DB: ${JOBS_POSTGRES_DB}
+      JOBS_POSTGRES_USER: ${JOBS_POSTGRES_USER}
+      JOBS_POSTGRES_PASSWORD: ${JOBS_POSTGRES_PASSWORD}
+      JOBS_POSTGRES_HOST: ${JOBS_POSTGRES_HOST}
+      JOBS_POSTGRES_PORT: ${JOBS_POSTGRES_PORT}
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
-      - ./src:/opt/airflow/src
-      - ./data:/opt/airflow/data
-      - ./ressources:/opt/airflow/ressources
-    user: ${AIRFLOW_UID}
+      - ./src:/src
+      - ./data:/data
+      - ./ressources:/ressources
+      - ./logs:/logs
+    user: "${AIRFLOW_UID}:0"
     depends_on:
       &airflow-common-depends-on
       airflow-db:
         condition: service_healthy
+      jobs-db:
+        condition: service_completed_successfully
         
 
   jobs-db:
@@ -131,7 +158,10 @@ services:
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
-    user: "0:0"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
 
     
   airflow-cli:
@@ -145,21 +175,58 @@ services:
     command:
       - bash
       - -c
-      - airflow config list
-
-
-  airflow-webserver:
+      - airflow
+  
+  #redis:
+  #  # Redis is limited to 7.2-bookworm due to licencing change
+  #  # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
+  #  image: redis:7.2-bookworm
+  #  expose:
+  #    - 6379
+  #  healthcheck:
+  #    test: ["CMD", "redis-cli", "ping"]
+  #    interval: 10s
+  #    timeout: 30s
+  #    retries: 50
+  #    start_period: 30s
+  #  restart: always
+    
+  #airflow-worker:
+  #  <<: *airflow-common
+  #  command: celery worker
+  #  healthcheck:
+  #    # yamllint disable rule:line-length
+  #    test:
+  #      CMD-SHEL celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d celery@$${HOSTNAME} || celery --app airflow.executors.celery_executor.app inspect ping -d celery@$${HOSTNAME}
+  #    interval: 30s
+  #    timeout: 10s
+  #    retries: 5
+  #    start_period: 30s
+  #  environment:
+  #    <<: *airflow-common-env
+  #    # Required to handle warm shutdown of the celery workers properly
+  #    # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
+  #    DUMB_INIT_SETSID: "0"
+  #  restart: always
+  #  depends_on:
+  #    <<: *airflow-common-depends-on
+  #    airflow-apiserver:
+  #      condition: service_healthy
+  #    airflow-init:
+  #      condition: service_completed_successfully
+        
+        
+  airflow-apiserver:
     <<: *airflow-common
     command: api-server
     ports:
       - "8080:8080"
-    environment:
-     <<: *airflow-common-env
     healthcheck:
-      test: ["CMD", "curl", "--fail", "/api/v2/monitor/health"]
-      interval: 10s
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 30s
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
@@ -171,12 +238,11 @@ services:
     <<: *airflow-common
     command: scheduler
     healthcheck:
-      test: ["CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
-      interval: 10s
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 30s
       timeout: 10s
       retries: 5
-    environment:
-      <<: *airflow-common-env
+      start_period: 30s
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
@@ -189,12 +255,11 @@ services:
     command: triggerer
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
-      interval: 10s
+      interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 30s
     restart: always
-    environment:
-      <<: *airflow-common-env
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -210,8 +275,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    environment:
-      <<: *airflow-common-env
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
@@ -222,14 +285,13 @@ services:
   api:
     build:
       context: .
-      dockerfile: src/API/Dockerfile
-    #depends_on:
-    #  - pipelines
+      dockerfile: src/API/Dockerfile.api
     environment:
       - PROJECT_ROOT=/src
     volumes:
       - ./data:/src/data          # accès lecture/écriture pour l'API
       - ./ressources:/src/ressources
+      - ./src:/src
     ports:
       - "8000:8000"
     restart: always
@@ -238,7 +300,7 @@ services:
   streamlit:
     build:
       context: .
-      dockerfile: job_market_app/Dockerfile
+      dockerfile: job_market_app/Dockerfile.streamlit
     depends_on:
       - api
     environment:
