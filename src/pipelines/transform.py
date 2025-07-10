@@ -102,6 +102,32 @@ def load_insee_data(file_path: str) -> tuple[dict, dict]:
 communes_dict, communes_nom_dict = load_insee_data(INSEE_FILE)
 
 
+def clean_title(title: str) -> str:
+    """
+    Nettoie un intitulé de poste :
+    - Supprime les mentions du type H/F, F/M/X, etc.
+    - Supprime les parenthèses ou symboles orphelins
+    - Applique une capitalisation harmonisée (Camel Case)
+    """
+    if not title:
+        return title
+
+    # Supprimer les suffixes comme (H/F), F / M / X, etc.
+    pattern = r'\s*\(?[HhFfMmXxDd](\s*[/.\-\\]\s*[HhFfMmXxDd]){1,2}\)?'
+    cleaned = re.sub(pattern, '', title)
+
+    # Nettoyage final : parenthèses vides, espaces multiples
+    cleaned = re.sub(r'\(\s*\)', '', cleaned)  # parenthèses vides
+    cleaned = re.sub(r'\s*[-/\\|]+\s*$', '', cleaned)  # tirets / barres seuls en fin
+    cleaned = re.sub(r'\s{2,}', ' ', cleaned)  # doubles espaces
+    cleaned = cleaned.strip()
+
+    # Harmonisation Camel Case : Data Engineer
+    cleaned = cleaned.lower()
+    cleaned = ' '.join(word.capitalize() for word in cleaned.split())
+
+    return cleaned
+
 
 def harmonize_company_name(company_name):
     """
@@ -494,7 +520,7 @@ def transform_adzuna_jobs(job):
     return {
         "source": "Adzuna",
         "external_id": job.get("id"),
-        "title": job.get("title"),
+        "title": clean_title(job.get("title")),
         "company": harmonize_company_name(job.get("company", {}).get("display_name")),
         "location": loc_adz,
         "code_postal": cp_adz,
@@ -517,7 +543,7 @@ def transform_france_travail_jobs(job):
     return {
         "source": "France Travail",
         "external_id": job.get("id"),
-        "title": job.get("intitule"),
+        "title": clean_title(job.get("intitule")),
         "company": harmonize_company_name(job.get("entreprise", {}).get("nom")),
         "location": loc_ft,
         "code_postal": cp_ft,
@@ -539,7 +565,7 @@ def transform_jsearch_jobs(job):
     loc_js, cp_js, country = extract_location_jsearch(job.get("job_location"))
     return {
         "source": "JSearch",
-        "external_id": job.get("job_id"),
+        "external_id": clean_title(job.get("job_id")),
         "title": job.get("job_title"),
         "company": harmonize_company_name(job.get("employer_name")),
         "location": loc_js,
