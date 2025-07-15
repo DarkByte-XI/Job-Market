@@ -61,7 +61,7 @@ services:
       airflow-db:
         condition: service_healthy
       jobs-db:
-        condition: service_completed_successfully
+        condition: service_healthy
         
 
   jobs-db:
