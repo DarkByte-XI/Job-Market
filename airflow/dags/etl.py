@@ -1,4 +1,3 @@
-from airflow.providers.http.operators.http import HttpOperator
 from airflow.utils.task_group import TaskGroup
 from datetime import timedelta, datetime
 from time import sleep
@@ -8,6 +7,7 @@ from pipelines.extract import extract_from_adzuna, extract_from_ft, extract_from
 from pipelines.load import load_jobs_to_db
 from pipelines.transform import (
     transform_jobs)
+import requests
 
 
 with DAG("job_market_ETL",
@@ -56,13 +56,12 @@ with DAG("job_market_ETL",
 
     load = load_jobs_to_database()
 
-    reload_api = HttpOperator(
-        task_id = "reload_api_data",
-        http_conn_id = "jobs_api",  # Doit être défini dans Airflow (Admin > Connections)
-        method = "POST",
-        endpoint = "/reload",
-        data = {},
-        log_response = True,
-    )
+    @task(task_id = "reload_api_data")
+    def reload_api_data():
+        response = requests.post("http://api:8000/reload")
+        response.raise_for_status()
+        return response.json()
+
+    reload_api = reload_api_data()
 
     etl = extract_group >> transform >> wait >> [reload_api, load]
