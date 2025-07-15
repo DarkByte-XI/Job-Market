@@ -26,6 +26,10 @@ services:
       AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
       AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW__API_AUTH__JWT_SECRET}
       AIRFLOW__API_AUTH__JWT_EXPIRATION_TIME: '2592000'
+      AIRFLOW__METRICS__STATSD_ON: 'True'
+      AIRFLOW__METRICS__STATSD_HOST: 'statsd-exporter'
+      AIRFLOW__METRICS__STATSD_PORT: '9125'
+      AIRFLOW__METRICS__STATSD_PREFIX: 'airflow'
       #_PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
       PYTHONPATH: /src
       PROJECT_ROOT: /
@@ -327,33 +331,26 @@ services:
     restart: always
   
   
+  statsd-exporter:
+    image: prom/statsd-exporter
+    ports:
+      - "9125:9125/udp"  # StatsD port
+      - "9102:9102"      # Prometheus metrics port
+    command: ["--log.level=info"]
+    
+    
   prometheus:
     image: prom/prometheus:latest
+    container_name: prometheus
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     restart: always
-    
-    
-  postgres-exporter-jobs:
-    image: prometheuscommunity/postgres-exporter
-    environment:
-      DATA_SOURCE_NAME: "postgresql://${JOBS_POSTGRES_USER}:${JOBS_POSTGRES_PASSWORD}@db:5432/${JOBS_POSTGRES_DB}?sslmode=disable"
     depends_on:
-      - jobs-db
-    restart: always
-    
-    
-  postgres-exporter-airflow:
-    image: prometheuscommunity/postgres-exporter
-    environment:
-      DATA_SOURCE_NAME: "postgresql://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@airflow-db:5432/${AIRFLOW_POSTGRES_DB}?sslmode=disable"
-    depends_on:
-      - airflow-db
-    restart: always
+      - statsd-exporter
 
-    
+
 volumes:
   db_data:
   airflow_db_data:
