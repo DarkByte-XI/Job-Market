@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Query
 from typing import List
+
+from fetch_functions.utils import get_latest_file
 from recommender.recommender import (
     build_recommendation_engine_from_folder,
     recommend_offers
@@ -11,6 +13,7 @@ router = APIRouter()
 
 ROOT = os.environ.get("PROJECT_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 PROCESSED_OFFERS_DIR = os.path.join(ROOT, "data/processed_data")
+LATEST_FILE = get_latest_file(PROCESSED_OFFERS_DIR)
 
 offers = []
 vectorizer = None
@@ -20,7 +23,7 @@ texts = []
 def load_recommendation_data() -> None:
     global offers, vectorizer, offer_vectors, texts
     offers, vectorizer, offer_vectors, texts = build_recommendation_engine_from_folder(PROCESSED_OFFERS_DIR)
-    print(f"✅ Données rechargées depuis {PROCESSED_OFFERS_DIR}")
+    print(f"✅ Données rechargées depuis {LATEST_FILE} !")
 
 # Chargement initial
 load_recommendation_data()
