@@ -79,12 +79,3 @@ def search_offers(query: str = Query(..., description = "Mot-clé recherché")):
     except Exception as e:
         print(f"Erreur dans /search : {e}")
         raise
-
-
-@router.post("/reload", status_code=200)
-def reload_offers():
-    try:
-        load_recommendation_data()
-        return {"message": "Données rechargées avec succès"}
-    except Exception as e:
-        return {"error": str(e)}
