@@ -54,8 +54,6 @@ def extract_from_adzuna():
     except Exception as e:
         error(f'{e}')
 
-    return adzuna_jobs
-
 
 def extract_from_ft():
     # Extraction depuis France Travail avec les appellations sélectionnées.
@@ -81,8 +79,6 @@ def extract_from_ft():
     except Exception as e:
         error(f'{e}')
 
-    return france_travail_jobs
-
 
 def extract_from_jsearch():
     # Extraction depuis JSearch
@@ -98,20 +94,14 @@ def extract_from_jsearch():
     except Exception as e:
         error(f'{e}')
 
-    return jsearch_all_jobs
-
 
 def extract_all_jobs():
     """Fonction centrale pour tout orchestrer proprement"""
-    adzuna_jobs = extract_from_adzuna()
-    ft_jobs = extract_from_ft()
-    jsearch_jobs = extract_from_jsearch()
-
-    all_jobs = adzuna_jobs + ft_jobs + jsearch_jobs
-    info(f"[FINAL] Total des offres extraites : {len(all_jobs)}")
-
-    return all_jobs
+    extract_from_adzuna()
+    extract_from_ft()
+    extract_from_jsearch()
+    info("[FINAL] Extraction terminée pour toutes les sources")
 
 
 if __name__ == "__main__":
-    extract_from_ft()
+    extract_all_jobs()
