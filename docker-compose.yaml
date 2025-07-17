@@ -291,11 +291,11 @@ services:
       context: .
       dockerfile: src/API/Dockerfile.api
     environment:
-      - PROJECT_ROOT=/src
+      - PROJECT_ROOT=/
     volumes:
       - ./src:/src
-      - ./data:/src/data          # accès lecture/écriture pour l'API
-      - ./ressources:/src/ressources
+      - ./data:/data          # accès lecture/écriture pour l'API
+      - ./ressources:/ressources
     ports:
       - "8000:8000"
     restart: always
@@ -311,8 +311,8 @@ services:
       - CONTENT_DIR=/app
       - STREAMLIT_API_HOST=${STREAMLIT_API_HOST}
     volumes:
-      - ./data:/src/data
-      - ./ressources:/src/ressources
+      - ./data:/data
+      - ./ressources:/ressources
     ports:
       - "8501:8501"
     restart: always
