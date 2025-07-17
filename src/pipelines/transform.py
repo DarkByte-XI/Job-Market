@@ -118,6 +118,7 @@ def clean_title(title: str) -> str:
 
     # Nettoyage final : parenthèses vides, espaces multiples
     cleaned = re.sub(r'\(\s*\)', '', cleaned)  # parenthèses vides
+    cleaned = re.sub(r'^\s*[-/\\|]+\s*', '', cleaned)  # tirets/barres seuls au début
     cleaned = re.sub(r'\s*[-/\\|]+\s*$', '', cleaned)  # tirets / barres seuls en fin
     cleaned = re.sub(r'\s{2,}', ' ', cleaned)  # doubles espaces
     cleaned = cleaned.strip()
