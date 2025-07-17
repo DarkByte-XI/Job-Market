@@ -293,9 +293,9 @@ services:
     environment:
       - PROJECT_ROOT=/src
     volumes:
+      - ./src:/src
       - ./data:/src/data          # accès lecture/écriture pour l'API
       - ./ressources:/src/ressources
-      - ./src:/src
     ports:
       - "8000:8000"
     restart: always
