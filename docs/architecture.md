@@ -6,38 +6,7 @@ Ce document présente l’architecture technique du projet **Job Market**, une p
 
 ## 📐 Vue d’ensemble
 
-                                    +------------------+
-                                    |   Utilisateur    |
-                                    |   (Streamlit UI) |
-                                    +--------+---------+
-                                             |
-                                             v
-                                     +-------+--------+
-                                     |    API FastAPI |
-                                     | (/search, etc.)|
-                                     +-------+--------+
-                                             |
-                    +------------------------+-------------------------+
-                    |                        |                         |
-                    v                        v                         v
-                +---------------+ +------------------+ +----------------+
-                | TF-IDF Engine | | Processed JSON   | |  PostgreSQL    |
-                | (Recommender) | | (data/processed) | | job_offers DB  |
-                +---------------+ +------------------+ +----------------+
-                    ↑                        ↑                         ↑
-                    |                        |                         |
-                    |                 +------+--------+                |
-                    |                 | Pipeline ETL  |                |
-                    |                 | (Python DAGs) |<---------------+
-                    |                 +------+--------+                |
-                    |                        ↑                         |
-                    +------------------------+-------------------------+
-                                             |                   
-                                    +---------------------+
-                                    |   APIs Externes     |
-                                    | Adzuna, FT, JSearch |
-                                    +---------------------+
-
+![workflow](/docs/assets/jobs_workflow.png)
 
 ---
 
