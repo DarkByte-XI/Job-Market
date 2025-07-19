@@ -12,7 +12,7 @@
 </div>
 
 <p align="center">
-  <img src="docs/screenshots/job_market_background.jpeg" alt="Job Market Banner" width="970" height="302"/>
+  <img src="docs/assets/job_market_background.jpeg" alt="Job Market Banner" width="970" height="302"/>
 </p>
 
 # Job Market
