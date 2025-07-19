@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align:center">
 
 ![License: MIT](https://img.shields.io/github/license/DarkByte-XI/Job-Market?label=license&style=for-the-badge)
 ![Made with Python](https://img.shields.io/badge/Python-3.12-blue?flat&logo=python&logoColor=yellow&style=for-the-badge)
@@ -11,9 +11,9 @@
 
 </div>
 
-<p align="center">
+<div style="text-align:center">
   <img src="docs/assets/job_market_background.jpeg" alt="Job Market Banner" width="970" height="302"/>
-</p>
+</div>
 
 # Job Market
 
@@ -75,11 +75,13 @@ Job Market est une plateforme complète permettant de :
 * Orchestration Airflow : Déclenchement des flux via DAGs
 * Docker : Conteneurisation et configuration complète avec docker-compose
 * Monitoring (optionnel) : Intégration possible avec Prometheus & Grafana
-<div align="center">
+
+<div style="text-align:center">
 
 ![architecture générale](/docs/assets/job_market_data_architecture.png)
 
 </div>
+
 ---
 
 ## Prérequis
@@ -178,7 +180,7 @@ python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate     # Windows
 ```
-> 🔍 Sur Pycharm, créer un projet vient à créer l'environnement automatiquement.
+> 🔍 Sur Pycharm, créer un projet crée l'environnement virtuel automatiquement.
 
 3. Installer les dépendances :
 ```bash
@@ -385,7 +387,8 @@ Le pipeline ETL est orchestré via un dag qui se trouve dans le répertoire ./ai
 Le workflow consiste à déclencher en parallèle l'extraction des données des différentes sources puis transformer
 et alimenter la base de données. Il permet également de mettre à jour l'API via un rechargement du
 dernier fichier extrait.
-<div align="center">
+
+<div style="text-align:center">
 
 ![airflow dag](/docs/screenshots/etl_dag.png)
 
@@ -507,11 +510,11 @@ Pour importer le dashboard :
 
 Le contenu du dashboard, une fois enrichi, est le suivant :
 
-<div align="center">
+<p style="text-align:center">
 
 ![grafana dashboard](/docs/screenshots/grafana_dashboard.png)
 
-</div>
+</p>
 
 ---
 
