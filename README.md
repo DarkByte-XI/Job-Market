@@ -44,7 +44,6 @@ Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de
 - [Orchestration dans Airflow](#orchestration-dans-airflow)
 - [API FastAPI](#api-fastapi)
     - [Endpoints](#endpoints)
-    - [Exemples d’utilisation](#exemples-utilisation)
 - [Moteur de recommandation](#moteur-de-recommandation)
 - [Streamlit](#streamlit)
 - [Grafana](#grafana)
@@ -401,7 +400,7 @@ curl -X GET http://localhost:8000/search?query=data%20engineer
 
 **Réponse** : liste recommandée d’offres structurées
 
-```bash
+```json
 [
   {
     "external_id": "5121612668",
@@ -425,7 +424,7 @@ curl -X GET http://localhost:8000/companies
 ```
 
 **Réponse** : liste d’entreprises
-```bash
+```json
 [
   {
     "id": "a9f5bb1c9c6e0e9b...",
