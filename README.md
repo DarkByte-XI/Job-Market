@@ -75,7 +75,11 @@ Job Market est une plateforme complète permettant de :
 * Orchestration Airflow : Déclenchement des flux via DAGs
 * Docker : Conteneurisation et configuration complète avec docker-compose
 * Monitoring (optionnel) : Intégration possible avec Prometheus & Grafana
+<div align="center">
 
+![architecture générale](/docs/assets/job_market_data_architecture.png)
+
+</div>
 ---
 
 ## Prérequis
@@ -381,6 +385,11 @@ Le pipeline ETL est orchestré via un dag qui se trouve dans le répertoire ./ai
 Le workflow consiste à déclencher en parallèle l'extraction des données des différentes sources puis transformer
 et alimenter la base de données. Il permet également de mettre à jour l'API via un rechargement du
 dernier fichier extrait.
+<div align="center">
+
+![airflow dag](/docs/screenshots/etl_dag.png)
+
+</div>
 
 ---
 
@@ -495,6 +504,14 @@ Pour importer le dashboard :
 2. Cliquer sur `New` ou `Nouveau`
 3. `Import` ou `Importer`
 4. Copier et coller le contenu du fichier json dans l'espace dédié et `charger`.
+
+Le contenu du dashboard, une fois enrichi, est le suivant :
+
+<div align="center">
+
+![grafana dashboard](/docs/screenshots/grafana_dashboard.png)
+
+</div>
 
 ---
 
