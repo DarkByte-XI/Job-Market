@@ -1,3 +1,5 @@
+<div align="center">
+
 ![License: MIT](https://img.shields.io/github/license/DarkByte-XI/Job-Market?label=license&style=for-the-badge)
 ![Made with Python](https://img.shields.io/badge/Python-3.12-blue?flat&logo=python&logoColor=yellow&style=for-the-badge)
 ![Streamlit](https://img.shields.io/badge/streamlit-1.46.0-F3E9DC?style=for-the-badge&logo=streamlit&logoColor=white&labelColor=red)
@@ -6,6 +8,8 @@
 ![Dockerized](https://img.shields.io/badge/Docker-ready-green?logo=docker&style=for-the-badge&color=green&labelColor=grey)
 ![Maintenance](https://img.shields.io/maintenance/maintened/2025?label=maintenance&style=for-the-badge)
 ![Grafana](https://img.shields.io/badge/Grafana-Dashboard-orange?style=for-the-badge&logo=grafana)
+
+</div>
 
 <p align="center">
   <img src="docs/screenshots/job_market_background.jpeg" alt="Job Market Banner" width="970" height="302"/>
