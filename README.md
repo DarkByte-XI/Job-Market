@@ -486,7 +486,7 @@ offres d'emploi.
 > Si la connexion échoue, vérifier que le host, username et mot de passe sont bons.
 
 ### Importation du dashboard
-À la racine, un fichier JSON, nommé `Job_Market_Dashboard-1752856139706.json`, permet d'importer
+À la racine, un fichier JSON, nommé `grafana_default_dashboard.json`, permet d'importer
 un dashboard déjà configuré. Il est possible aussi de créer un dashboard vierge une fois la connexion avec
 la base de donnée est établie. Des connaissances en SQL sont nécéssaires pour créer les visualisations.
 
