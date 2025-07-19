@@ -1,4 +1,4 @@
-[![License: MIT](https://img.shields.io/github/license/DarkByte-XI/Job-Market?label=license&style=for-the-badge)
+![License: MIT](https://img.shields.io/github/license/DarkByte-XI/Job-Market?label=license&style=for-the-badge)
 ![Made with Python](https://img.shields.io/badge/Python-3.12-blue?flat&logo=python&logoColor=yellow&style=for-the-badge)
 ![Streamlit](https://img.shields.io/badge/-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 ![Airflow](https://img.shields.io/badge/Airflow-3.0+-blue?logo=apacheairflow&logoColor=red&style=for-the-badge)
