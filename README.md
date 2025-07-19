@@ -1,7 +1,7 @@
 ![License: MIT](https://img.shields.io/github/license/DarkByte-XI/Job-Market?label=license&style=for-the-badge)
 ![Made with Python](https://img.shields.io/badge/Python-3.12-blue?flat&logo=python&logoColor=yellow&style=for-the-badge)
 ![Streamlit](https://img.shields.io/badge/streamlit-1.46.0-purple?style=for-the-badge&logo=streamlit&logoColor=white&labelColor=red)
-![Airflow](https://img.shields.io/badge/Airflow-3.0+-blue?logo=apacheairflow&logoColor=red&style=for-the-badge)
+![Airflow](https://img.shields.io/badge/Airflow-3.0+-blue?logo=apacheairflow&logoColor=white&style=for-the-badge)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Dockerized](https://img.shields.io/badge/Docker-ready-green?logo=docker&style=for-the-badge&color=green&labelColor=grey)
 ![Maintenance](https://img.shields.io/maintenance/maintened/2025?label=maintenance&style=for-the-badge)
