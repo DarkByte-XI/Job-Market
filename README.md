@@ -374,7 +374,6 @@ Le module ./src/pipelines/load.py :
 ---
 
 ## Orchestration dans Airflow
-
 Le pipeline ETL est orchestré via un dag qui se trouve dans le répertoire ./airflow/dags.
 Le workflow consiste à déclencher en parallèle l'extraction des données des différentes sources puis transformer
 et alimenter la base de données. Il permet également de mettre à jour l'API via un rechargement du
@@ -384,9 +383,8 @@ dernier fichier extrait.
 
 
 ## API FastAPI
-
 L’API démarre en important le moteur de recommandation (TF-IDF, similarité cosinus) qui vectorise toutes les offres au démarrage :
-**Aucune latence liée au chargement des fichiers à chaque requête.**
+**Aucune latence liée au chargement des fichiers à chaque requête**.
 
 ### Endpoints
 #### 1. /search
