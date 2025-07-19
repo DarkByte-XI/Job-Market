@@ -382,7 +382,9 @@ dernier fichier extrait.
 
 ---
 
+
 ## API FastAPI
+
 L’API démarre en important le moteur de recommandation (TF-IDF, similarité cosinus) qui vectorise toutes les offres au démarrage :
 **Aucune latence liée au chargement des fichiers à chaque requête.**
 
