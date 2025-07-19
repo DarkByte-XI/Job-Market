@@ -4,7 +4,7 @@
 ![Airflow](https://img.shields.io/badge/Airflow-3.0+-blue?logo=apacheairflow&logoColor=red&style=for-the-badge)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Dockerized](https://img.shields.io/badge/Docker-ready-green?logo=docker&style=for-the-badge)
-![Maintenance](https://img.shields.io/maintenance/maintened/2025?label=maintenance?style=for-the-badge)
+![Maintenance](https://img.shields.io/maintenance/maintened/2025?label=maintenance&style=for-the-badge)
 ![Grafana](https://img.shields.io/badge/Grafana-Dashboard-orange?style=for-the-badge&logo=grafana)
 
 <p align="center">
