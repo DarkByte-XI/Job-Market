@@ -1,6 +1,7 @@
 """
 Schemas Pydantic pour les réponses d'entreprises de l'API Job Market.
 """
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -14,3 +15,4 @@ class CompanyResponse(BaseModel):
     """
     id: str
     name: str
+    sector: Optional[str] = None
