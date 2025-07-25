@@ -43,15 +43,10 @@ with DAG("job_market_ETL",
 
     transform = transform_raw_jobs()
 
-    @task(task_id="wait_for_file")
-    def wait_for_file():
-        print("Waiting for file to be created...")
-        sleep(10)
-
-    wait = wait_for_file()
 
     @task(task_id="load_to_database")
     def load_jobs_to_database():
+        sleep(5)
         return load_jobs_to_db()
 
     load = load_jobs_to_database()
@@ -64,4 +59,4 @@ with DAG("job_market_ETL",
 
     reload_api = reload_api_data()
 
-    etl = extract_group >> transform >> wait >> [reload_api, load]
+    etl = extract_group >> transform >> [reload_api, load]
