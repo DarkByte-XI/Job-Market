@@ -170,7 +170,11 @@ if search and (quoi or ou):
                 timeout=10,
             )
             resp.raise_for_status()
-            results = resp.json()
+            data = resp.json()
+            if isinstance(data, dict) and "results" in data:
+                results = data["results"]
+            else:
+                results = data
     except Exception as e:
         st.error(f"Erreur API : {e}")
         st.stop()
