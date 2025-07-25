@@ -1,6 +1,6 @@
+from datetime import datetime
 from fastapi import APIRouter, Query
-from typing import List
-
+from typing import Optional
 from fetch_functions.utils import get_latest_file
 from recommender.recommender import (
     build_recommendation_engine_from_folder,
@@ -28,63 +28,99 @@ def load_recommendation_data() -> None:
 # Chargement initial
 load_recommendation_data()
 
+# --- MAPPING DICTIONNAIRE DES TYPES DE CONTRAT ---
+CONTRACT_TYPE_EQUIV = {
+    "cdi": {"cdi", "permanent", "contract", "fulltime"},
+    "cdd": {"cdd", "temporary", "interim"},
+    "stage": {"stage", "internship"},
+}
 
-@router.get("/search", response_model = List[JobOfferResponse])
-def search_offers(query: str = Query(..., description = "Mot-clé recherché")):
-    """
-    Endpoint permettant de récupérer les offres d'emploi recommandées.
-    Les résultats sont triés par pertinence (TF-IDF + cosinus).
-    """
+@router.get("/search")
+def search_offers(
+    query: str = Query(..., description="Mot-clé recherché"),
+    location: Optional[str] = Query(None, description="Filtre localisation"),
+    contract_type: Optional[str] = Query(None, description="Filtre type de contrat"),
+    page: int = Query(1, ge=1, description="Numéro de page"),
+    page_size: int = Query(20, ge=1, le=100, description="Taille de page"),
+):
+    # Compose user_query pour la reco
+    user_query = query
+    if location:
+        user_query += f" {location}"
+    if contract_type:
+        user_query += f" {contract_type}"
+
     try:
         recos = recommend_offers(
-            user_input = query,
-            offers_vectorizer = vectorizer,
-            processed_offer_vectors = offer_vectors,
-            processed_offers = offers,
-            top_n = 20,
+            user_input=user_query,
+            offers_vectorizer=vectorizer,
+            processed_offer_vectors=offer_vectors,
+            processed_offers=offers,
+            top_n=150,
+            score_threshold=0.45
         )
-        results: List[JobOfferResponse] = []
+
+        # Applique filtrage contract_type/location après reco
+        filtered_results = []
+        norm_contract = contract_type.strip().lower().replace(" ", "") if contract_type else None
+        norm_location = location.strip().lower() if location else None
+
+        # === Filtrage robuste avec mapping dictionnaire ===
+        values = CONTRACT_TYPE_EQUIV.get(norm_contract, {norm_contract}) if norm_contract else None
+
         for o in recos:
-            # Coerce pour éviter les None auprès de Pydantic
+            # Filtrage contract_type
+            if norm_contract and values:
+                offer_type = (o.get("contract_type") or "").strip().lower().replace(" ", "")
+                if not any(val in offer_type for val in values):
+                    continue
+            # Filtrage location
+            if norm_location:
+                loc = (o.get("location") or "").strip().lower()
+                if norm_location not in loc:
+                    continue
+
             description = o.get("description") or ""
             company = o.get("company") or ""
-            location = o.get("location") or ""
+            location_ = o.get("location") or ""
             code_postal = o.get("code_postal") or ""
+            salary_min = float(o["salary_min"]) if o.get("salary_min") not in ("", None) else None
+            salary_max = float(o["salary_max"]) if o.get("salary_max") not in ("", None) else None
+            created_at = o.get("created_at")
+            if isinstance(created_at, str):
+                created_at = datetime.fromisoformat(created_at)
+            # sinon, c'est déjà un datetime
 
-            salary_min = (
-                float(o["salary_min"])
-                if o.get("salary_min") not in ("", None)
-                else None
-            )
-            salary_max = (
-                float(o["salary_max"])
-                if o.get("salary_max") not in ("", None)
-                else None
-            )
-
-            results.append(JobOfferResponse(
-                external_id = o["external_id"],
-                title = o["title"],
+            filtered_results.append(JobOfferResponse(
+                external_id = o.get("external_id", ""),
+                title = o.get("title", ""),
                 company = company,
                 description = description,
-                location = location,
+                location = location_,
+                contract_type = o.get("contract_type"),
                 code_postal = code_postal,
                 salary_min = salary_min,
                 salary_max = salary_max,
-                url = o["apply_url"]
+                created_at = created_at,
+                url = o.get("apply_url", o.get("url", ""))
             ))
 
-        return results
+        # Limite à 150 offres max après avoir tout filtré
+        filtered_results = filtered_results[:150]
+
+        total_count = len(filtered_results)
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        # Retourne le même format que /jobs pour la pagination
+        return {
+            "results": filtered_results[start:end],
+            "total_count": total_count,
+            "page": page,
+            "page_size": page_size
+        }
 
     except Exception as e:
         print(f"Erreur dans /search : {e}")
         raise
 
-
-@router.post("/reload", status_code=200)
-def reload_offers():
-    try:
-        load_recommendation_data()
-        return {"message": "Données rechargées avec succès"}
-    except Exception as e:
-        return {"error": str(e)}
