@@ -43,6 +43,7 @@ def list_companies():
         company_name = o.get("company", "")
         if company_name and company_name not in companies_seen:
             company_id = hashlib.md5(company_name.encode()).hexdigest()
-            companies.append(CompanyResponse(id = company_id, name = company_name))
+            company_sector = o.get("sector", "")
+            companies.append(CompanyResponse(id = company_id, name = company_name, sector = company_sector))
             companies_seen.add(company_name)
     return companies
