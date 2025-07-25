@@ -221,31 +221,55 @@ def mark_missing_offers_inactive():
     # 1) Récupère le dernier JSON
     latest_path = get_latest_file(PROCESSED_DATA_DIR)
     if not latest_path:
+        warning("Aucun fichier transformé trouvé.")
         return
 
-    # 2) Compose la liste des IDs importés
+    # 2) Compose la liste des IDs importés (normalisation !)
     with open(latest_path, "r", encoding="utf-8") as f:
         jobs = json.load(f)
-    imported_ids = [job["external_id"] for job in jobs]
+    imported_ids = [str(job["external_id"]).strip() for job in jobs if job.get("external_id")]
+    imported_ids = list(set(imported_ids))  # retire les doublons éventuels (normalement aucun)
+
     if not imported_ids:
+        warning("Aucun external_id trouvé dans le fichier transformé.")
         return
 
-    # 3) Exécute l'UPDATE en se servant de ANY() sur un tableau de texte
     conn = connect_db()
     try:
         with conn.cursor() as cur:
+            # Log avant update
+            cur.execute("SELECT COUNT(*) FROM job_offers WHERE status = 'active';")
+            active_before = cur.fetchone()[0]
+            info(f"Nombre d'offres actives avant update: {active_before}")
+
+            # 3) Exécute l'UPDATE pour passer à inactif ce qui ne figure pas dans le dernier batch
             cur.execute("""
                 UPDATE job_offers
                    SET status = 'inactive'
                  WHERE status = 'active'
-                   -- ici on teste que external_id n'est PAS dans le tableau :
-                   AND NOT (external_id::text = ANY(%s::text[]));
+                   AND NOT (external_id = ANY(%s));
             """, (imported_ids,))
+
+            info(f"{cur.rowcount} offres marquées inactive.")
+
+            # Log après update
+            cur.execute("SELECT COUNT(*) FROM job_offers WHERE status = 'active';")
+            active_after = cur.fetchone()[0]
+            info(f"Nombre d'offres actives après update: {active_after}")
+
+            # Audit : y a-t-il encore des actives non présentes dans le batch courant ?
+            cur.execute("""
+                SELECT external_id FROM job_offers
+                 WHERE status = 'active'
+                   AND NOT (external_id = ANY(%s))
+                 LIMIT 10;
+            """, (imported_ids,))
+            ghosts = cur.fetchall()
+            if ghosts:
+                warning(f"Des offres actives n'apparaissent pas dans le dernier fichier: {ghosts}")
         conn.commit()
-        info(f"{cur.rowcount} offres marquées inactive.")
     finally:
         conn.close()
-
 
 
 
