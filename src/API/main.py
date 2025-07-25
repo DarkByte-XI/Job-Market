@@ -8,12 +8,25 @@ Entrée principale de l’API Job Market (FastAPI).
 from fastapi import FastAPI
 from API.recommend import router as recommend_router
 from API.companies import router as companies_router
+from API.jobs import router as jobs_router
+from API.reload import router as reload_router
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 app = FastAPI(
     title="Job Market API",
     description="API interne de centralisation et de recommandation d’offres d’emploi multicanal.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:9002"],  # Ici tous les ports utilisés et qui exploitent l'API
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -45,3 +58,5 @@ def root():
 # On inclut les endpoints
 app.include_router(recommend_router)
 app.include_router(companies_router)
+app.include_router(jobs_router)
+app.include_router(reload_router)
