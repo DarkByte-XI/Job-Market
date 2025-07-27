@@ -45,7 +45,7 @@ Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de
     - [2. Transformation et normalisation](#2-transformation-et-normalisation)
     - [3. Chargement](#3-chargement)
 - [Orchestration dans Airflow](#orchestration-dans-airflow)
-- [API FastAPI](#api-fastapi)
+- [API Job Market – Concepts et Fonctionnement](#api-job-market--concepts-et-fonctionnement)
     - [Concepts clés](#concepts-clés)
     - [Principaux endpoints](#principaux-endpoints)
 - [Moteur de recommandation](#moteur-de-recommandation)
@@ -435,7 +435,7 @@ dernier fichier extrait.
 ---
 
 
-## API FastAPI
+## API Job Market – Concepts et Fonctionnement
 
 L’API centrale du projet Job Market expose l’ensemble des offres d’emploi agrégées, enrichies et recommandées grâce à un moteur intelligent.
 Pensée pour la performance et la simplicité d’intégration, elle pré-charge au démarrage tous les fichiers nécessaires : 
