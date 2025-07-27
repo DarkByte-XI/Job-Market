@@ -192,7 +192,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "fixedColor": "red",
+            "fixedColor": "semi-dark-purple",
             "mode": "shades"
           },
           "custom": {
@@ -250,7 +250,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 6,
         "w": 10,
         "x": 8,
         "y": 0
@@ -332,7 +332,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 6,
         "x": 18,
         "y": 0
@@ -371,7 +371,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  s.name AS source_name,\n  COUNT(*) AS offer_count\nFROM job_offers jo\nJOIN sources s ON jo.source_id = s.source_id\nGROUP BY s.name\nORDER BY offer_count DESC;",
+          "rawSql": "SELECT \n  s.name AS source_name,\n  COUNT(*) AS offer_count\nFROM job_offers jo\nJOIN sources s ON jo.source_id = s.source_id\nwhere status = 'active'\nGROUP BY s.name\nORDER BY offer_count DESC;",
           "refId": "A",
           "sql": {
             "columns": [
@@ -431,7 +431,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 19,
+        "h": 18,
         "w": 8,
         "x": 0,
         "y": 3
@@ -533,7 +533,7 @@
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
-            "axisPlacement": "right",
+            "axisPlacement": "hidden",
             "fillOpacity": 42,
             "gradientMode": "hue",
             "hideFrom": {
@@ -568,9 +568,9 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 10,
+        "w": 5,
         "x": 8,
-        "y": 7
+        "y": 6
       },
       "id": 7,
       "options": {
@@ -634,6 +634,114 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "continuous-YlBl"
+          },
+          "custom": {
+            "axisBorderShow": true,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "hidden",
+            "fillOpacity": 72,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 5,
+        "x": 13,
+        "y": 6
+      },
+      "id": 10,
+      "options": {
+        "barRadius": 0.25,
+        "barWidth": 0.85,
+        "colorByField": "offer_count",
+        "fullHighlight": true,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 300
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  c.name AS company_name,\n  COUNT(*) AS offer_count\nFROM job_offers jo\nJOIN companies c ON jo.company_id = c.company_id\nJOIN (\n    SELECT job_id, title FROM adzuna_offers\n    UNION ALL\n    SELECT job_id, title FROM france_travail_offers\n    UNION ALL\n    SELECT job_id, title FROM jsearch_offers\n) AS offers ON jo.job_id = offers.job_id\nWHERE \n  jo.status = 'active'\n  AND c.name IS NOT NULL\n  AND TRIM(c.name) <> ''\n  AND (\n    offers.title ILIKE '%dev%' OR\n    offers.title ILIKE '%base de données%' OR\n    offers.title ILIKE '%software%' OR\n    offers.title ILIKE '%data%' OR\n    offers.title ILIKE '%digital%' OR\n    offers.title ILIKE '%cyber%' OR\n    offers.title ILIKE '%cloud%' OR\n    offers.title ILIKE '%ingénieur%' OR\n    offers.title ILIKE '%engineer%' OR\n    offers.title ILIKE '%docker%' OR\n    offers.title ILIKE '%aws%' OR\n    offers.title ILIKE '%gcp%'\n  )\n  AND (\n    offers.title NOT ILIKE '%formation%'\n    AND offers.title NOT ILIKE '%certification%'\n    AND offers.title NOT ILIKE '%certifiante%'\n  )\nGROUP BY c.name\nORDER BY offer_count DESC\nLIMIT 10;\n",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Top 10 des entreprises recrutant dans la Tech",
+      "transparent": true,
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "berg4jjulw5c0e"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "fixedColor": "#c3c3c3",
             "mode": "palette-classic"
           },
@@ -649,14 +757,16 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
+        "h": 12,
         "w": 6,
         "x": 18,
-        "y": 8
+        "y": 9
       },
       "id": 8,
       "options": {
-        "displayLabels": [],
+        "displayLabels": [
+          "percent"
+        ],
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
@@ -680,7 +790,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  l.location AS location_name,\n  COUNT(*) AS offer_count\nFROM job_offers jo\nJOIN locations l ON jo.location_id = l.location_id\nWHERE \n  jo.status = 'active'\n  AND l.location IS NOT NULL\n  AND TRIM(l.location) <> ''\nGROUP BY l.location\nORDER BY offer_count DESC\nLIMIT 10;",
+          "rawSql": "SELECT \n  CASE\n    WHEN LOWER(l.location) LIKE 'paris%' \n      OR LOWER(l.location) LIKE 'nanterre%' \n      OR LOWER(l.location) LIKE 'courbevoie%'\n    THEN 'PARIS'\n    ELSE l.location\n  END AS location_name,\n  COUNT(*) AS offer_count\nFROM job_offers jo\nJOIN locations l ON jo.location_id = l.location_id\nWHERE \n  jo.status = 'active'\n  AND l.location IS NOT NULL\n  AND TRIM(l.location) <> ''\nGROUP BY location_name\nORDER BY offer_count DESC\nLIMIT 10;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -721,7 +831,7 @@
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
-            "axisPlacement": "auto",
+            "axisPlacement": "hidden",
             "fillOpacity": 100,
             "gradientMode": "hue",
             "hideFrom": {
@@ -794,7 +904,7 @@
         "h": 6,
         "w": 10,
         "x": 8,
-        "y": 16
+        "y": 15
       },
       "id": 9,
       "options": {
@@ -860,12 +970,12 @@
     "list": []
   },
   "time": {
-    "from": "now-90d",
+    "from": "now-30d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Job Market Dashboard",
   "uid": "da5b040c-67cb-461e-9a2a-fc6d56635da5",
-  "version": 26
+  "version": 43
 }
