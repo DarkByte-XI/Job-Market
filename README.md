@@ -33,7 +33,10 @@ Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de
 - [Récupération des accès](#récupération-des-accès)
 - [Configuration et variables d'environnement](#configuration-et-variables-denvironnement)
 - [Permissions et fichiers critiques](#permissions-et-fichiers-critiques)
-- [Lancement](#lancement) 
+- [Aperçu rapide de la base de données](#aperçu-rapide-de-la-base-de-données)
+  - [Relations principales](#relations-principales)
+  - [Diagramme](#diagramme)
+- [Lancement](#lancement)
     - [Première exécution manuelle](#première-exécution-manuelle)
     - [Lancer Docker Compose](#lancer-docker-compose)
     - [Airflow](#airflow)
@@ -43,7 +46,8 @@ Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de
     - [3. Chargement](#3-chargement)
 - [Orchestration dans Airflow](#orchestration-dans-airflow)
 - [API FastAPI](#api-fastapi)
-    - [Endpoints](#endpoints)
+    - [Concepts clés](#concepts-clés)
+    - [Principaux endpoints](#principaux-endpoints)
 - [Moteur de recommandation](#moteur-de-recommandation)
 - [Streamlit](#streamlit)
 - [Grafana](#grafana)
@@ -266,6 +270,40 @@ chmod -R u+rwX dags logs plugins data
 ```bash
 chmod -R u+rwX ./src
 ```
+---
+
+## Aperçu rapide de la base de données
+
+La base de données est modélisée selon une approche en étoile pour optimiser l’intégration et la consultation d’offres d’emploi issues de plusieurs sources (Adzuna, France Travail, JSearch).
+Voici les principaux composants du modèle :
+
+* **job_offers** : table centrale qui référence toutes les offres, leur statut (active/inactive), la date d’insertion, et les clés étrangères associées.
+* **companies** : contient les informations normalisées des entreprises (nom, SIRET...).
+* **locations** : centralise les lieux géographiques (ville, code postal...).
+* **sources** : identifie l’origine des offres (API/source partenaire).
+* **Tables de faits par source** : chaque source (**adzuna_offers**, **france_travail_offers**, **jsearch_offers**) 
+contient les détails spécifiques à l’offre d’emploi, comme le titre, la description, le salaire, et est liée à la table job_offers via une clé étrangère (job_id).
+
+### Relations principales
+
+Chaque offre d’emploi (job_offers) est liée à :
+* Une entreprise (companies)
+* Un lieu (locations)
+* Une source (sources)
+* Un détail source (table *_offers correspondante via job_id)
+
+Ce modèle garantit une structuration propre, la déduplication des entités (entreprises, lieux) et 
+facilite les requêtes analytiques avancées (par ville, entreprise, statut, etc.).
+
+### Diagramme
+
+<p style="text-align:center">
+
+![diagramme UML](docs/screenshots/database-schema.png)
+
+</p>
+
+---
 
 
 ## Lancement
@@ -398,19 +436,43 @@ dernier fichier extrait.
 
 
 ## API FastAPI
-L’API démarre en important le moteur de recommandation (TF-IDF, similarité cosinus) qui vectorise toutes les offres au démarrage :
-**Aucune latence liée au chargement des fichiers à chaque requête**.
 
-### Endpoints
+L’API centrale du projet Job Market expose l’ensemble des offres d’emploi agrégées, enrichies et recommandées grâce à un moteur intelligent.
+Pensée pour la performance et la simplicité d’intégration, elle pré-charge au démarrage tous les fichiers nécessaires : 
+cela permet de vectoriser l’ensemble des offres en mémoire (TF-IDF, similarité cosinus) afin de garantir des réponses rapides, 
+sans latence liée au rechargement ou au parsing de gros fichiers à chaque requête.
+
+**Pour consulter la documentation interactive complète :**
+http://localhost:8000/docs
+
+### Concepts clés
+
+* **Vectorisation en mémoire** :
+Toutes les offres sont transformées en vecteurs dès le démarrage (TF-IDF), ce qui permet d’appliquer en temps réel des calculs de similarité (cosinus) 
+entre une requête utilisateur et l’ensemble du corpus.
+
+* **Traitement asynchrone et réactif** :
+L’API expose des endpoints pensés pour la recherche en temps réel, la récupération massive ou paginée, et la synchronisation avec le pipeline ETL.
+
+* **Rechargement à chaud des données** :
+Un endpoint dédié permet d’actualiser l’index en mémoire dès qu’un nouveau fichier de données est extrait/transformé, sans redémarrage de l’API.
+
+### Principaux endpoints
 #### 1. /search
-Recherche d’offres d’emploi recommandées à partir d’une requête utilisateur.
+
+Recherche d’offres recommandées selon une requête utilisateur (mot-clé, poste, compétences…).
+Le moteur renvoie les offres les plus pertinentes sur la base du score de similarité, sans latence de chargement.
+
 
 **Requête** :
 ```bash
 curl -X GET http://localhost:8000/search?query=data%20engineer
 ```
 
-**Réponse** : liste recommandée d’offres structurées
+**Réponse** : 
+
+Liste d’offres recommandées (jusqu’à 150 résultats), structurées selon les principaux champs :
+`external_id`, `title`, `company`, `location`, `code_postal`, `salary_min`, `salary_max`, `url`
 
 ```json
 [
@@ -428,32 +490,46 @@ curl -X GET http://localhost:8000/search?query=data%20engineer
 ```
 
 #### 2. /companies
-Liste des entreprises distinctes extraites des offres.
+Récupère la liste unique des entreprises présentes dans les offres disponibles.
 
 **Requête**:
 ```bash
 curl -X GET http://localhost:8000/companies
 ```
 
-**Réponse** : liste d’entreprises
+**Réponse** :
+
+Liste structurée d’entreprises :
+`id`, `name`, `sector
+
 ```json
 [
   {
     "id": "a9f5bb1c9c6e0e9b...",
-    "name": "openclassrooms"
+    "name": "openclassrooms",
+    "sector": "education"
   }
 ]
 ```
 #### 3. /reload
-L'endpoint reload permet de recharger l'API avec le dernier fichier extrait via le pipeline
-ETL pour maintenir les données à jour.
-Après le lancement manuel du pipeline et par la suite l'exécution du docker compose,
-l'API récupère le fichier transformé et le recharge automatiquement.
 
-Pour une exécution manuelle:
+Permet de recharger dynamiquement l’index en mémoire à partir des nouveaux fichiers extraits par le pipeline ETL.
+Intégré dans le workflow, il assure une actualisation instantanée après chaque update du pipeline.
+
+**Exécution manuelle** :
+
 ```bash
 curl -X POST http://localhost:8000/reload
 ```
+
+#### 4. /jobs
+
+Endpoint permettant la récupération paginée de l’intégralité des offres présentes dans la base, 
+pour affichage ou exploration front-end.
+
+#### **Remarque** :
+Tous les endpoints sont conçus pour l’intégration directe avec des frontends web, outils de data visualisation, ou automatisations backend.
+Le moteur de recherche, basé sur la vectorisation et la recherche par similarité, garantit des recommandations pertinentes et un temps de réponse optimal, même sur un large volume d’offres.
 
 ---
 
@@ -512,7 +588,7 @@ Le contenu du dashboard, une fois enrichi, est le suivant :
 
 <p style="text-align:center">
 
-![grafana dashboard](/docs/screenshots/grafana_dashboard.png)
+![grafana dashboard](/docs/screenshots/grafana-dashboard.png)
 
 </p>
 
