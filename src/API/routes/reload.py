@@ -1,4 +1,4 @@
-from API.recommend import load_recommendation_data, APIRouter
+from API.routes.recommend import load_recommendation_data, APIRouter
 
 router = APIRouter()
 

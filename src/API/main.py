@@ -6,10 +6,10 @@ Entrée principale de l’API Job Market (FastAPI).
 """
 
 from fastapi import FastAPI
-from API.recommend import router as recommend_router
-from API.companies import router as companies_router
-from API.jobs import router as jobs_router
-from API.reload import router as reload_router
+from API.routes.recommend import router as recommend_router
+from API.routes.companies import router as companies_router
+from API.routes.jobs import router as jobs_router
+from API.routes.reload import router as reload_router
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 

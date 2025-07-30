@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 from typing import Optional
 from datetime import datetime
 from API.schemas.job import JobOfferResponse
-from API.recommend import offers
+from API.routes.recommend import offers
 import random
 
 router = APIRouter()
