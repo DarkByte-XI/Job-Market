@@ -4,7 +4,7 @@ from time import sleep
 from airflow import DAG
 from airflow.decorators import task
 from pipelines.extract import extract_from_adzuna, extract_from_ft, extract_from_jsearch
-from pipelines.load import load_jobs_to_db
+from pipelines.load import load_jobs_to_db, mark_missing_offers_inactive
 from pipelines.transform import (
     transform_jobs)
 import requests
@@ -43,13 +43,23 @@ with DAG("job_market_ETL",
 
     transform = transform_raw_jobs()
 
+    with TaskGroup("load") as load_group:
+        @task(task_id="load_to_database")
+        def load_jobs_to_database():
+            sleep(5)
+            return load_jobs_to_db()
 
-    @task(task_id="load_to_database")
-    def load_jobs_to_database():
-        sleep(5)
-        return load_jobs_to_db()
+        load = load_jobs_to_database()
 
-    load = load_jobs_to_database()
+
+        @task(task_id="update_jobs_status")
+        def mark_jobs_inactive():
+            return mark_missing_offers_inactive()
+
+        update_jobs_status = mark_jobs_inactive()
+
+        load_group_tasks = load >> update_jobs_status
+
 
     @task(task_id = "reload_api_data")
     def reload_api_data():
@@ -59,4 +69,4 @@ with DAG("job_market_ETL",
 
     reload_api = reload_api_data()
 
-    etl = extract_group >> transform >> [reload_api, load]
+    etl = extract_group >> transform >> reload_api >> load_group
