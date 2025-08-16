@@ -569,7 +569,7 @@ offres d'emploi.
 4. Dans la partie connexion, la valeur par défaut de l'hôte est **localhost:5432**.
 5. Fournir le nom de la base de données, ici **jobs_db**
 6. Fournir l'username et le mot de passe, défini dans `.env`.
-7. Désactiver TLS/SSL et chosir la version 15 de PostgreSQL (similaire à celle lancée dans docker).
+7. Désactiver TLS/SSL et choisir la version 15 de PostgreSQL (similaire à celle lancée dans docker).
 8. Sauvegarder et tester la connexion
 > Si la connexion échoue, vérifier que le host, username et mot de passe sont bons.
 
@@ -605,4 +605,5 @@ Le contenu du dashboard, une fois enrichi, est le suivant :
 ---
 
 ## Auteurs
+
 Projet personnel développé et maintenu par [Dani CHMEIS]() & [Enzo Petrelluzi]().
