@@ -554,7 +554,7 @@ Streamlit est lancée via docker compose en même temps que les autres services 
 --- 
 
 ## Frontend Experience
-Cette partie non inclue dans le code source et developpée dans un repo séparé avec Node.js et React, met en évidence la vision produit issue du backend
+Cette partie non inclue dans le code source et developpée dans un repo séparé avec Node.js et React, met en avant la vision produit issue du backend
 et traite en grande partie le job-listing, le moteur de recommandation des offres d'emploi ainsi que les filtres intégrés dans les différents endpoints de l'API.
 
 <p style="text-align:center">
@@ -619,5 +619,6 @@ Le contenu du dashboard, une fois enrichi, est le suivant :
 ## Auteurs
 
 Projet personnel développé et maintenu par [Dani CHMEIS]() & [Enzo Petrelluzi]().
+
 
 
