@@ -50,6 +50,7 @@ Ce projet vise à agréger, nettoyer et proposer des offres d’emploi issues de
     - [Principaux endpoints](#principaux-endpoints)
 - [Moteur de recommandation](#moteur-de-recommandation)
 - [Streamlit](#streamlit)
+- [Frontend Experience](#frontend-experience)
 - [Grafana](#grafana)
   - [Configuration](#configuration)
   - [Importation du dashboard](#importation-du-dashboard)
@@ -552,6 +553,13 @@ Streamlit est lancée via docker compose en même temps que les autres services 
 
 --- 
 
+## Frontend Experience
+
+
+https://github.com/user-attachments/assets/f1a67f85-b652-4989-a797-93fafea70a6a
+
+
+
 ## Grafana
 Grafana est une plateforme de représentation graphique de données statistiques open source.
 Il est embarqué dans les services docker du projet.
@@ -607,3 +615,4 @@ Le contenu du dashboard, une fois enrichi, est le suivant :
 ## Auteurs
 
 Projet personnel développé et maintenu par [Dani CHMEIS]() & [Enzo Petrelluzi]().
+
